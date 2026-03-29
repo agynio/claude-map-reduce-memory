@@ -3,7 +3,7 @@ import type { Note } from './types'
 
 export function formatNoteForChunk(note: Note): string {
   const date = new Date(note.timestamp).toISOString().slice(0, 10)
-  return `[${date}] ${note.content}\n  -> activate when: ${note.when}`
+  return `[${date}] ${note.content}\n  \u2192 activate when: ${note.when}`
 }
 
 export function formatChunkNotes(notes: Note[]): string {

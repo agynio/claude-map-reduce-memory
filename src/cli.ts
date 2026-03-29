@@ -5,6 +5,7 @@ import { execFile } from 'node:child_process'
 import { stdin as input, stdout as output } from 'node:process'
 import { promisify } from 'node:util'
 
+import { getFlagValue, getPositionalArgs, parsePositiveInt } from './args'
 import {
   BASE_DIR,
   DEFAULT_CONFIG,
@@ -34,7 +35,7 @@ import {
   saveConfig
 } from './store'
 import type { HookEventEntry } from './types'
-import { runRetrieveHook, runRetrieveQuery } from './retrieve'
+import { resolveRetrieveMode, runRetrieveHook, runRetrieveQuery } from './retrieve'
 import { runRemind } from './remind'
 
 const PRE_TOOL_COMMAND = 'claude-memory retrieve'
@@ -48,17 +49,17 @@ description: Persistent memory across sessions. Memories auto-retrieved before t
 
 # Memory
 
-You have persistent memory that survives across sessions via the claude-memory CLI.
+You have persistent memory that survives across sessions via the \`claude-memory\` CLI.
 
 ## How It Works
 
-- Automatic retrieval: Before each tool call, relevant memories
+- **Automatic retrieval**: Before each tool call, relevant memories
   appear as [MEMORY] blocks in your context. No action needed.
-- Reminders: After tool calls, you may see a short reminder to
+- **Reminders**: After tool calls, you may see a short reminder to
   consider saving noteworthy results. Use your judgment.
-- Explicit writes: Run claude-memory write when you make important
+- **Explicit writes**: Run claude-memory write when you make important
   decisions or discover something worth remembering.
-- Explicit search: Run claude-memory retrieve for specific past context.
+- **Explicit search**: Run claude-memory retrieve for specific past context.
 
 ## Writing Memory
 
@@ -96,7 +97,7 @@ Don't write memory for:
 
 Good notes are specific:
 - BAD: "Fixed the bug"
-- GOOD: "Fixed auth token refresh in src/auth/token.ts - expiry was
+- GOOD: "Fixed auth token refresh in src/auth/token.ts \u2014 expiry was
   3600s, should be 900s per API spec"
 
 Include: file paths, error messages, decision rationale, config values.
@@ -110,35 +111,6 @@ Include: file paths, error messages, decision rationale, config values.
   claude-memory list
   claude-memory list --limit 20
 `
-
-function getFlagValue(args: string[], flag: string): string | undefined {
-  const prefix = `${flag}=`
-  for (let i = 0; i < args.length; i += 1) {
-    const arg = args[i]
-    if (arg === flag) {
-      return args[i + 1]
-    }
-    if (arg.startsWith(prefix)) {
-      return arg.slice(prefix.length)
-    }
-  }
-  return undefined
-}
-
-function getPositionalArgs(args: string[]): string[] {
-  return args.filter((arg) => !arg.startsWith('-'))
-}
-
-function parsePositiveInt(value: string | undefined, fallback: number): number {
-  if (!value) {
-    return fallback
-  }
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback
-  }
-  return parsed
-}
 
 async function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -267,20 +239,19 @@ async function handleList(args: string[]): Promise<void> {
 }
 
 async function handleRetrieve(args: string[]): Promise<void> {
-  const positional = getPositionalArgs(args)
-  const query = positional[0]
-  const maxResults = parsePositiveInt(getFlagValue(args, '--max'), 5)
-  if (query) {
-    const output = await runRetrieveQuery(query, maxResults)
+  const mode = resolveRetrieveMode(args, process.stdin.isTTY)
+  if (mode.mode === 'query') {
+    const output = await runRetrieveQuery(mode.query, mode.maxResults)
     console.log(output)
     return
   }
-  if (process.stdin.isTTY) {
-    throw new Error('retrieve requires a query or piped stdin JSON')
+  if (mode.mode === 'hook') {
+    const rawInput = await readStdin()
+    const output = await runRetrieveHook(rawInput)
+    process.stdout.write(output)
+    return
   }
-  const rawInput = await readStdin()
-  const output = await runRetrieveHook(rawInput)
-  process.stdout.write(output)
+  throw new Error(mode.message)
 }
 
 async function handleInit(args: string[]): Promise<void> {
@@ -324,16 +295,18 @@ async function handleInit(args: string[]): Promise<void> {
 
   const version = await loadPackageVersion()
   const config = await loadConfig()
+  const checkMark = '\u2713'
+  const warnMark = '\u26A0'
   console.log(`claude-memory v${version}`)
   console.log('')
   console.log(
-    `  ${cliInstalled ? 'OK' : 'WARN'} CLI installed globally`
+    `  ${cliInstalled ? checkMark : warnMark} CLI installed globally`
   )
-  console.log(`  OK Data directory: ${BASE_DIR}`)
-  console.log('  OK PreToolUse hook registered')
-  console.log('  OK PostToolUse hook registered (reminder: on)')
-  console.log(`  OK Skill installed: ${SKILL_PATH}`)
-  console.log(`  OK Auth: API key (${maskApiKey(config.apiKey)})`)
+  console.log(`  ${checkMark} Data directory: ${BASE_DIR}`)
+  console.log(`  ${checkMark} PreToolUse hook registered`)
+  console.log(`  ${checkMark} PostToolUse hook registered (reminder: on)`)
+  console.log(`  ${checkMark} Skill installed: ${SKILL_PATH}`)
+  console.log(`  ${checkMark} Auth: API key (${maskApiKey(config.apiKey)})`)
   console.log('')
   console.log('Ready. Start a Claude Code session to begin building memory.')
   console.log('')

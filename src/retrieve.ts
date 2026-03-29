@@ -1,22 +1,24 @@
 import fs from 'node:fs/promises'
 
+import { getFlagValue, getPositionalArgs, parsePositiveInt } from './args'
 import { MAX_TRANSCRIPT_TOKENS } from './constants'
 import { extractExistingHints } from './dedup'
+import { isRecord } from './guards'
+import { isClaudeMemoryCommand } from './hooks'
 import { gatherHookHints, gatherQueryResults } from './scatter-gather'
 import { loadChunks, loadConfig } from './store'
 import { truncateToTokenLimit } from './tokens'
-import type { HookInput } from './types'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import type { HookInput, RawHookInput } from './types'
 
 function parseHookInput(raw: string): HookInput {
-  const parsed = JSON.parse(raw) as unknown
+  const parsed = JSON.parse(raw) as RawHookInput
   if (!isRecord(parsed)) {
     throw new Error('Invalid hook input')
   }
-  const toolName = typeof parsed.tool_name === 'string' ? parsed.tool_name : null
+  const toolName =
+    typeof parsed.tool_name === 'string' && parsed.tool_name.trim().length > 0
+      ? parsed.tool_name
+      : null
   if (!toolName) {
     throw new Error('Missing tool_name')
   }
@@ -29,15 +31,6 @@ function parseHookInput(raw: string): HookInput {
     tool_input: toolInput,
     transcript_path: transcriptPath
   }
-}
-
-function shouldSkipHook(toolName: string, toolInput: Record<string, unknown>): boolean {
-  if (toolName !== 'Bash') {
-    return false
-  }
-  const command =
-    typeof toolInput.command === 'string' ? toolInput.command : ''
-  return command.includes('claude-memory')
 }
 
 async function readTranscript(transcriptPath?: string): Promise<string> {
@@ -61,13 +54,35 @@ function formatHookOutput(hints: string[]): string {
   })
 }
 
+export type RetrieveMode =
+  | { mode: 'query'; query: string; maxResults: number }
+  | { mode: 'hook' }
+  | { mode: 'error'; message: string }
+
+export function resolveRetrieveMode(
+  args: string[],
+  stdinIsTTY: boolean
+): RetrieveMode {
+  const positional = getPositionalArgs(args)
+  const query = positional[0]
+  const maxResults = parsePositiveInt(getFlagValue(args, '--max'), 5)
+
+  if (query) {
+    return { mode: 'query', query, maxResults }
+  }
+  if (!stdinIsTTY) {
+    return { mode: 'hook' }
+  }
+  return {
+    mode: 'error',
+    message: 'retrieve requires a query or piped stdin JSON'
+  }
+}
+
 export async function runRetrieveHook(rawInput: string): Promise<string> {
   try {
     const hookInput = parseHookInput(rawInput)
-    if (!hookInput.tool_name || !hookInput.tool_input) {
-      return '{}'
-    }
-    if (shouldSkipHook(hookInput.tool_name, hookInput.tool_input)) {
+    if (isClaudeMemoryCommand(hookInput.tool_name, hookInput.tool_input)) {
       return '{}'
     }
 
@@ -89,7 +104,7 @@ export async function runRetrieveHook(rawInput: string): Promise<string> {
     const existingHints = transcript
       ? extractExistingHints(transcript)
       : []
-    const toolInputText = JSON.stringify(hookInput.tool_input ?? {})
+    const toolInputText = JSON.stringify(hookInput.tool_input)
 
     const hints = await gatherHookHints({
       config,

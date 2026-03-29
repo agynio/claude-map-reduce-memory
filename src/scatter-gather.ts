@@ -1,10 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-import {
-  MERGE_TIMEOUT,
-  MAX_TRANSCRIPT_TOKENS,
-  SCATTER_TIMEOUT
-} from './constants'
+import { MERGE_TIMEOUT, SCATTER_TIMEOUT } from './constants'
 import {
   formatChunkNotes,
   formatQueryUserPrompt,
@@ -14,14 +10,10 @@ import {
   formatSingleChunkUserPrompt,
   parseBulletList
 } from './format'
-import { truncateToTokenLimit } from './tokens'
+import { isRecord } from './guards'
 import type { Chunk, Config } from './types'
 
 const DEFAULT_MAX_TOKENS = 300
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
 
 function extractTextFromResponse(response: { content: unknown }): string {
   if (!Array.isArray(response.content)) {
@@ -105,10 +97,6 @@ export async function gatherHookHints(params: {
   if (!params.config.apiKey) {
     throw new Error('API key not configured')
   }
-  const transcript = truncateToTokenLimit(
-    params.transcript,
-    MAX_TRANSCRIPT_TOKENS
-  )
   const client = new Anthropic({ apiKey: params.config.apiKey })
 
   if (params.chunks.length === 1) {
@@ -116,7 +104,7 @@ export async function gatherHookHints(params: {
     const system = formatScatterSystemPrompt(chunkNotes)
     const user = formatSingleChunkUserPrompt(
       params.existingHints,
-      transcript,
+      params.transcript,
       params.toolName,
       params.toolInput
     )
@@ -135,7 +123,7 @@ export async function gatherHookHints(params: {
       const chunkNotes = formatChunkNotes(entry.chunk.notes)
       const system = formatScatterSystemPrompt(chunkNotes)
       const user = formatScatterUserPrompt(
-        transcript,
+        params.transcript,
         params.toolName,
         params.toolInput
       )
@@ -166,7 +154,7 @@ export async function gatherHookHints(params: {
     const reducePrompt = formatReducePrompt(
       params.existingHints,
       candidates,
-      transcript
+      params.transcript
     )
     const response = await callAnthropic(
       client,

@@ -10,18 +10,11 @@ import {
   DEFAULT_CONFIG,
   STATE_PATH
 } from './constants'
+import { isNumber, isRecord } from './guards'
 import { estimateTokens } from './tokens'
 import type { Chunk, Config, Note, State } from './types'
 
 const CHUNK_FILE_REGEX = /^chunk-(\d+)\.json$/
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function isNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
-}
 
 function chunkFilename(sequence: number): string {
   return `chunk-${String(sequence).padStart(3, '0')}.json`

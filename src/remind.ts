@@ -1,17 +1,6 @@
 import { MEMORY_REMINDER_TEXT } from './constants'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function shouldSkip(toolName: string, toolInput: Record<string, unknown>): boolean {
-  if (toolName !== 'Bash') {
-    return false
-  }
-  const command =
-    typeof toolInput.command === 'string' ? toolInput.command : ''
-  return command.includes('claude-memory')
-}
+import { isRecord } from './guards'
+import { isClaudeMemoryCommand } from './hooks'
 
 export async function runRemind(rawInput: string): Promise<string> {
   try {
@@ -21,7 +10,7 @@ export async function runRemind(rawInput: string): Promise<string> {
     }
     const toolName = typeof parsed.tool_name === 'string' ? parsed.tool_name : ''
     const toolInput = isRecord(parsed.tool_input) ? parsed.tool_input : {}
-    if (toolName && shouldSkip(toolName, toolInput)) {
+    if (isClaudeMemoryCommand(toolName, toolInput)) {
       return ''
     }
 

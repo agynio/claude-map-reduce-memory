@@ -25,10 +25,16 @@ export interface Config {
   apiKey: string | null
 }
 
-export interface HookInput {
+export interface RawHookInput {
   session_id?: string
   tool_name?: string
   tool_input?: Record<string, unknown>
+  transcript_path?: string
+}
+
+export interface HookInput {
+  tool_name: string
+  tool_input: Record<string, unknown>
   transcript_path?: string
 }
 
