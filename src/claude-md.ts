@@ -15,15 +15,15 @@ const SECTION_LINES = [
 
 type SectionRange = { start: number; end: number }
 
-function detectLineEnding(content: string): string {
+export function detectLineEnding(content: string): string {
   return content.includes('\r\n') ? '\r\n' : '\n'
 }
 
-function buildSection(lineEnding: string): string {
+export function buildSection(lineEnding: string): string {
   return SECTION_LINES.join(lineEnding)
 }
 
-function findSectionRange(content: string): SectionRange | null {
+export function findSectionRange(content: string): SectionRange | null {
   const start = content.indexOf(SECTION_START)
   if (start === -1) {
     return null
@@ -35,7 +35,7 @@ function findSectionRange(content: string): SectionRange | null {
   return { start, end: endMarker + SECTION_END.length }
 }
 
-function upsertSectionContent(content: string): string {
+export function upsertSectionContent(content: string): string {
   const lineEnding = detectLineEnding(content)
   const section = buildSection(lineEnding)
   const range = findSectionRange(content)
@@ -46,12 +46,18 @@ function upsertSectionContent(content: string): string {
   return `${content}${separator}${section}${lineEnding}`
 }
 
-function removeSectionContent(content: string): string {
+export function removeSectionContent(content: string): string {
   const range = findSectionRange(content)
   if (!range) {
     return content
   }
-  return content.slice(0, range.start) + content.slice(range.end)
+  let end = range.end
+  if (content.slice(end, end + 2) === '\r\n') {
+    end += 2
+  } else if (content[end] === '\n') {
+    end += 1
+  }
+  return content.slice(0, range.start) + content.slice(end)
 }
 
 export async function upsertClaudeMdRule(): Promise<void> {
@@ -64,10 +70,9 @@ export async function upsertClaudeMdRule(): Promise<void> {
       const code = (error as NodeJS.ErrnoException).code
       if (code === 'ENOENT') {
         exists = false
-      } else {
-        throw error
       }
-    } else {
+    }
+    if (exists) {
       throw error
     }
   }
