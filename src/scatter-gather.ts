@@ -78,7 +78,13 @@ async function callAnthropic(
       model,
       max_tokens: DEFAULT_MAX_TOKENS,
       temperature: 0,
-      system,
+      system: [
+        {
+          type: 'text' as const,
+          text: system,
+          cache_control: { type: 'ephemeral' as const }
+        }
+      ],
       messages: [{ role: 'user', content: user }]
     }),
     timeoutMs
