@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "lint": "tsc --noEmit",
     "test": "npm run build && node --test --test-concurrency=1"
   },
