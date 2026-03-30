@@ -15,16 +15,41 @@ to retrieve and write notes without blocking agent work.
 - Deduplication prevents context blowup.
 - No extra processes or MCP servers; just an npm CLI.
 
-## Installation
+## Authentication
 
-```bash
-npx claude-memory init
-```
-
-To set a dedicated API key during init:
+`claude-memory` requires an API key for memory calls. Provide it with
+the `--api-key` flag or the `ANTHROPIC_API_KEY` environment variable.
 
 ```bash
 npx claude-memory init --api-key sk-ant-...
+```
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... npx claude-memory init
+```
+
+Configure or update the key later:
+
+```bash
+claude-memory config --api-key sk-ant-...
+```
+
+Remove the key:
+
+```bash
+claude-memory config --api-key off
+```
+
+## Installation
+
+```bash
+npx claude-memory init --api-key sk-ant-...
+```
+
+Or use the environment variable:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... npx claude-memory init
 ```
 
 What `init` does:
@@ -55,12 +80,13 @@ claude-memory list --limit 10
 ### User-facing commands
 
 ```bash
-npx claude-memory init
+npx claude-memory init --api-key sk-ant-...
 npx claude-memory status
 npx claude-memory config
 npx claude-memory config --api-key sk-ant-...
 npx claude-memory config --api-key off
 npx claude-memory config --max-hints 5
+npx claude-memory config --reminder on
 npx claude-memory config --reminder off
 npx claude-memory reset --confirm
 npx claude-memory uninstall
