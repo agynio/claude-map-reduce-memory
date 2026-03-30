@@ -5,6 +5,11 @@ import { execFile } from 'node:child_process'
 import { stdin as input, stdout as output } from 'node:process'
 import { promisify } from 'node:util'
 
+import {
+  hasClaudeMdRule,
+  removeClaudeMdRule,
+  upsertClaudeMdRule
+} from './claude-md'
 import { getFlagValue, getPositionalArgs, parsePositiveInt } from './args'
 import {
   BASE_DIR,
@@ -292,6 +297,7 @@ async function handleInit(args: string[]): Promise<void> {
 
   await fs.mkdir(SKILL_DIR, { recursive: true })
   await fs.writeFile(SKILL_PATH, SKILL_CONTENT)
+  await upsertClaudeMdRule()
 
   const version = await loadPackageVersion()
   const config = await loadConfig()
@@ -306,6 +312,7 @@ async function handleInit(args: string[]): Promise<void> {
   console.log(`  ${checkMark} PreToolUse hook registered`)
   console.log(`  ${checkMark} PostToolUse hook registered (reminder: on)`)
   console.log(`  ${checkMark} Skill installed: ${SKILL_PATH}`)
+  console.log(`  ${checkMark} CLAUDE.md rule added`)
   console.log(`  ${checkMark} Auth: API key (${maskApiKey(config.apiKey)})`)
   console.log('')
   console.log('Ready. Start a Claude Code session to begin building memory.')
@@ -329,6 +336,7 @@ async function handleStatus(): Promise<void> {
     'PostToolUse',
     POST_TOOL_COMMAND
   )
+  const claudeRuleOn = await hasClaudeMdRule()
 
   console.log('Memory Status:')
   console.log(`  Notes:      ${totalNotes}`)
@@ -346,6 +354,7 @@ async function handleStatus(): Promise<void> {
   }
   console.log(`  Storage:    ${storageBytes} bytes`)
   console.log(`  Reminder:   ${reminderOn ? 'on' : 'off'}`)
+  console.log(`  CLAUDE.md rule: ${claudeRuleOn ? 'on' : 'off'}`)
   console.log(`  Auth:       API key (${maskApiKey(config.apiKey)})`)
 }
 
@@ -440,6 +449,7 @@ async function handleUninstall(): Promise<void> {
   await saveSettingsFile(withoutPost)
 
   await fs.rm(SKILL_DIR, { recursive: true, force: true })
+  await removeClaudeMdRule()
 
   const removeData = await promptYesNo(
     `Remove data directory at ${BASE_DIR}? (y/N) `
