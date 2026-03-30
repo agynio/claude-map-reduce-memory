@@ -6,5 +6,5 @@ export function isClaudeMemoryCommand(
     return false
   }
   const command = typeof toolInput.command === 'string' ? toolInput.command : ''
-  return command.includes('claude-memory')
+  return command.includes('cmr-memory')
 }

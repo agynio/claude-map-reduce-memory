@@ -15,10 +15,10 @@ test('runRemind returns JSON output for normal tool usage', async () => {
   assert.equal(parsed.hookSpecificOutput.additionalContext, MEMORY_REMINDER_TEXT)
 })
 
-test('runRemind skips claude-memory commands', async () => {
+test('runRemind skips cmr-memory commands', async () => {
   const input = JSON.stringify({
     tool_name: 'Bash',
-    tool_input: { command: 'claude-memory list' }
+    tool_input: { command: 'cmr-memory list' }
   })
   const output = await runRemind(input)
   assert.equal(output, '')
