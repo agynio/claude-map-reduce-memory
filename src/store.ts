@@ -139,7 +139,7 @@ export async function loadConfigOrNull(): Promise<Config | null> {
 export async function loadConfig(): Promise<Config> {
   const config = await loadConfigOrNull()
   if (!config) {
-    throw new Error('Config not found. Run "claude-memory init".')
+    throw new Error('Config not found. Run "cmr-memory init".')
   }
   return config
 }

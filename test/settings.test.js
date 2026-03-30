@@ -7,21 +7,21 @@ test('upsertHookEntry replaces existing command entry', () => {
   const existing = {
     hooks: {
       PreToolUse: [
-        { matcher: '', hooks: [{ type: 'command', command: 'claude-memory retrieve' }] }
+        { matcher: '', hooks: [{ type: 'command', command: 'cmr-memory retrieve' }] }
       ],
       Other: [{ matcher: '', hooks: [{ type: 'command', command: 'other' }] }]
     }
   }
   const replacement = {
     matcher: '',
-    hooks: [{ type: 'command', command: 'claude-memory retrieve', timeout: 15000 }]
+    hooks: [{ type: 'command', command: 'cmr-memory retrieve', timeout: 15000 }]
   }
 
   const updated = upsertHookEntry(
     existing,
     'PreToolUse',
     replacement,
-    'claude-memory retrieve'
+    'cmr-memory retrieve'
   )
 
   assert.equal(updated.hooks.PreToolUse.length, 1)
@@ -47,7 +47,7 @@ test('removeHookEntry drops event when empty', () => {
   const existing = {
     hooks: {
       PostToolUse: [
-        { matcher: '', hooks: [{ type: 'command', command: 'claude-memory remind' }] }
+        { matcher: '', hooks: [{ type: 'command', command: 'cmr-memory remind' }] }
       ],
       Other: [{ matcher: '', hooks: [{ type: 'command', command: 'other' }] }]
     }
@@ -56,7 +56,7 @@ test('removeHookEntry drops event when empty', () => {
   const updated = removeHookEntry(
     existing,
     'PostToolUse',
-    'claude-memory remind'
+    'cmr-memory remind'
   )
 
   assert.ok(!updated.hooks.PostToolUse)

@@ -1,4 +1,4 @@
-# claude-memory
+# cmr-memory
 
 ## Agent Memory Service for Claude Code — Specification v3.2
 
@@ -6,7 +6,7 @@
 
 ## 1. Overview
 
-`claude-memory` is an npm package that provides persistent, cross-session memory for Claude Code agents.
+`cmr-memory` is an npm package that provides persistent, cross-session memory for Claude Code agents.
 
 | Component | Role | Mechanism |
 |-----------|------|-----------|
@@ -17,7 +17,7 @@
 
 ### Design Principles
 
-1. **All writes go through the agent**: Memory is only written when the agent runs `claude-memory write`. The agent is always in control.
+1. **All writes go through the agent**: Memory is only written when the agent runs `cmr-memory write`. The agent is always in control.
 2. **Reading is passive**: PreToolUse hook silently injects relevant memories as additionalContext before each tool call.
 3. **Transcript is the reasoning**: Hooks receive transcript_path with recent conversation — the agent's actual intent, not just tool I/O.
 4. **Deduplication prevents context blowup**: additionalContext from hooks persists as `<system-reminder>` blocks in conversation history. The PreToolUse hook reads the transcript, extracts existing `<system-reminder>` blocks, and only injects NEW hints not already present. Once all relevant hints are in context, no new ones are added.
@@ -51,7 +51,7 @@ Uses the Claude Agent SDK (`@anthropic-ai/claude-agent-sdk`), which authenticate
 The user can configure a dedicated API key for memory calls. This keeps the main agent on subscription while memory uses pay-per-token billing separately.
 
 ```bash
-claude-memory config --api-key sk-ant-...
+cmr-memory config --api-key sk-ant-...
 ```
 
 The key is stored in `~/.claude-memory/config.json` (not in shell environment). Claude Code never sees it — only the memory hooks read it. This means:
@@ -76,18 +76,18 @@ A globally installed npm binary that the agent calls via the Bash tool.
 
 Called by the agent during a session via Bash:
 
-**claude-memory write** — Write a note to memory.
+**cmr-memory write** — Write a note to memory.
 ```bash
-claude-memory write "note content here" --when "activation condition"
+cmr-memory write "note content here" --when "activation condition"
 ```
 - First argument: the note content (required)
 - --when: describes when this memory should activate (required). Include project name for project-specific notes. Omit project for universal knowledge.
 - Behavior: Create Note, append to latest chunk file, start new chunk file if over limit
 - Output (stdout): "Saved" (short confirmation)
 
-**claude-memory retrieve** — Search memory for relevant notes.
+**cmr-memory retrieve** — Search memory for relevant notes.
 ```bash
-claude-memory retrieve "rate limiter config decisions" --max 5
+cmr-memory retrieve "rate limiter config decisions" --max 5
 ```
 - First argument: search query (required)
 - --max: maximum results (optional, default 5)
@@ -98,9 +98,9 @@ claude-memory retrieve "rate limiter config decisions" --max 5
 - If a CLI argument is present → agent search mode (query from argument)
 - If no argument and stdin has JSON → hook mode (context from transcript_path)
 
-**claude-memory list** — List recent notes.
+**cmr-memory list** — List recent notes.
 ```bash
-claude-memory list --limit 10
+cmr-memory list --limit 10
 ```
 - --limit: number of notes (optional, default 10)
 - Behavior: Read from recent chunks, newest first
@@ -111,19 +111,19 @@ claude-memory list --limit 10
 Run by the user in their terminal:
 
 ```bash
-npx claude-memory init                    # setup everything
-npx claude-memory status                  # show memory stats
-npx claude-memory config                  # view current config
-npx claude-memory config --api-key sk-ant-...  # use separate API key
-npx claude-memory config --api-key off         # revert to subscription auth
-npx claude-memory config --max-hints 5         # change max hints
-npx claude-memory config --reminder off        # remove PostToolUse nudge hook
-npx claude-memory config --reminder on         # re-add PostToolUse nudge hook
-npx claude-memory reset --confirm              # clear all memory data
-npx claude-memory uninstall                    # remove hooks, skill, and data
+npx cmr-memory init                    # setup everything
+npx cmr-memory status                  # show memory stats
+npx cmr-memory config                  # view current config
+npx cmr-memory config --api-key sk-ant-...  # use separate API key
+npx cmr-memory config --api-key off         # revert to subscription auth
+npx cmr-memory config --max-hints 5         # change max hints
+npx cmr-memory config --reminder off        # remove PostToolUse nudge hook
+npx cmr-memory config --reminder on         # re-add PostToolUse nudge hook
+npx cmr-memory reset --confirm              # clear all memory data
+npx cmr-memory uninstall                    # remove hooks, skill, and data
 ```
 
-Note: to temporarily disable all memory, run `claude-memory uninstall`. To re-enable, run `claude-memory init` (idempotent, won't reset data unless `reset` is called first).
+Note: to temporarily disable all memory, run `cmr-memory uninstall`. To re-enable, run `cmr-memory init` (idempotent, won't reset data unless `reset` is called first).
 
 ---
 
@@ -140,12 +140,12 @@ Teaches the agent when and how to use memory.
 ```
 ---
 name: memory
-description: Persistent memory across sessions. Memories auto-retrieved before tool calls. Use claude-memory CLI to save important context.
+description: Persistent memory across sessions. Memories auto-retrieved before tool calls. Use cmr-memory CLI to save important context.
 ---
 
 # Memory
 
-You have persistent memory that survives across sessions via the `claude-memory` CLI.
+You have persistent memory that survives across sessions via the `cmr-memory` CLI.
 
 ## How It Works
 
@@ -153,15 +153,15 @@ You have persistent memory that survives across sessions via the `claude-memory`
   appear as [MEMORY] blocks in your context. No action needed.
 - **Reminders**: After tool calls, you may see a short reminder to
   consider saving noteworthy results. Use your judgment.
-- **Explicit writes**: Run claude-memory write when you make important
+- **Explicit writes**: Run cmr-memory write when you make important
   decisions or discover something worth remembering.
-- **Explicit search**: Run claude-memory retrieve for specific past context.
+- **Explicit search**: Run cmr-memory retrieve for specific past context.
 
 ## Writing Memory
 
 Save important context:
 
-  claude-memory write "your note here" --when "activation condition"
+  cmr-memory write "your note here" --when "activation condition"
 
 The --when field is critical. It tells the memory system WHEN to surface
 this note. Include:
@@ -170,13 +170,13 @@ this note. Include:
 - Omit project name for universal knowledge (e.g. user preferences)
 
 Examples:
-  claude-memory write "Auth expiry should be 900s not 3600s in config.ts" \
+  cmr-memory write "Auth expiry should be 900s not 3600s in config.ts" \
     --when "working on myapp, auth module, tokens, or editing config.ts"
 
-  claude-memory write "User prefers tabs over spaces" \
+  cmr-memory write "User prefers tabs over spaces" \
     --when "any project, code formatting, editor settings"
 
-  claude-memory write "Redis chosen for session storage over Postgres" \
+  cmr-memory write "Redis chosen for session storage over Postgres" \
     --when "working on dashboard project, session management, database decisions"
 
 Write memory for:
@@ -200,12 +200,12 @@ Include: file paths, error messages, decision rationale, config values.
 
 ## Searching Memory
 
-  claude-memory retrieve "query here" --max 5
+  cmr-memory retrieve "query here" --max 5
 
 ## Listing Recent Notes
 
-  claude-memory list
-  claude-memory list --limit 20
+  cmr-memory list
+  cmr-memory list --limit 20
 ```
 
 ---
@@ -224,7 +224,7 @@ In ~/.claude/settings.json:
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "claude-memory retrieve",
+        "command": "cmr-memory retrieve",
         "timeout": 15000
       }]
     }]
@@ -232,7 +232,7 @@ In ~/.claude/settings.json:
 }
 ```
 
-Empty matcher = fires for all tools. The script skips claude-memory commands internally.
+Empty matcher = fires for all tools. The script skips cmr-memory commands internally.
 
 ### 5.2 Hook Input (stdin JSON)
 
@@ -254,7 +254,7 @@ The transcript also contains all previous `<system-reminder>` blocks — which i
 ### 5.4 Skip Conditions
 
 Return {} immediately (no LLM calls) if:
-- tool_name is "Bash" AND tool_input.command contains "claude-memory" (avoid recursion)
+- tool_name is "Bash" AND tool_input.command contains "cmr-memory" (avoid recursion)
 - No chunk files exist yet (fresh install)
 
 ### 5.5 Retrieval Flow
@@ -442,7 +442,7 @@ When disabled, the Skill alone teaches the agent when to write memory.
 
 ### 6.1 Registration
 
-Registered by default during `init`. User can remove with `claude-memory config --reminder off`.
+Registered by default during `init`. User can remove with `cmr-memory config --reminder off`.
 
 ```json
 {
@@ -451,7 +451,7 @@ Registered by default during `init`. User can remove with `claude-memory config 
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "claude-memory remind"
+        "command": "cmr-memory remind"
       }]
     }]
   }
@@ -462,14 +462,14 @@ Registered by default during `init`. User can remove with `claude-memory config 
 
 ```bash
 #!/bin/bash
-# claude-memory remind
+# cmr-memory remind
 
 INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name')
 TOOL_CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
-# Skip if this is a claude-memory command (avoid recursion)
-if [ "$TOOL_NAME" = "Bash" ] && echo "$TOOL_CMD" | grep -q "claude-memory"; then
+# Skip if this is a cmr-memory command (avoid recursion)
+if [ "$TOOL_NAME" = "Bash" ] && echo "$TOOL_CMD" | grep -q "cmr-memory"; then
   exit 0
 fi
 
@@ -478,7 +478,7 @@ cat << 'HOOKEOF'
 {
   "hookSpecificOutput": {
     "hookEventName": "PostToolUse",
-    "additionalContext": "If noteworthy: claude-memory write \"note\" --when \"condition\""
+    "additionalContext": "If noteworthy: cmr-memory write \"note\" --when \"condition\""
   }
 }
 HOOKEOF
@@ -502,11 +502,11 @@ Negligible. Old tool results + their system-reminders are cleaned up during comp
 
 ```bash
 # Disable the reminder
-claude-memory config --reminder off
+cmr-memory config --reminder off
 # → removes PostToolUse hook entry from ~/.claude/settings.json
 
 # Re-enable
-claude-memory config --reminder on
+cmr-memory config --reminder on
 # → adds PostToolUse hook entry back to ~/.claude/settings.json
 ```
 
@@ -564,7 +564,7 @@ No `sealed`, `active`, `sealedAt`, or `createdAt` fields needed — the sequence
 
 Write always goes to the latest chunk file.
 
-**Write path** (`claude-memory write`):
+**Write path** (`cmr-memory write`):
 ```
 1. Create Note object (id, timestamp, content, when, tokens)
 2. Read latest chunk file (highest sequence number)
@@ -661,7 +661,7 @@ When dedup returns NONE (all hints already in context), the reduce call is skipp
 Prerequisites: Claude Code installed and authenticated (`claude /login` completed).
 
 ```bash
-npx claude-memory init
+npx cmr-memory init
 ```
 
 That's it. No API key to configure.
@@ -670,9 +670,9 @@ That's it. No API key to configure.
 
 **Step 1: Install CLI globally**
 ```bash
-npm install -g claude-memory
+npm install -g cmr-memory
 ```
-Makes `claude-memory` available as a command for the agent to call via Bash.
+Makes `cmr-memory` available as a command for the agent to call via Bash.
 
 **Step 2: Create data directory**
 ```
@@ -692,7 +692,7 @@ Merges into ~/.claude/settings.json:
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "claude-memory retrieve",
+        "command": "cmr-memory retrieve",
         "timeout": 15000
       }]
     }],
@@ -700,14 +700,14 @@ Merges into ~/.claude/settings.json:
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "claude-memory remind"
+        "command": "cmr-memory remind"
       }]
     }]
   }
 }
 ```
 
-PostToolUse hook is registered by default. User can remove it later with `claude-memory config --reminder off`.
+PostToolUse hook is registered by default. User can remove it later with `cmr-memory config --reminder off`.
 If ~/.claude/settings.json exists with other hooks, init merges without overwriting.
 
 **Step 4: Install skill**
@@ -717,7 +717,7 @@ Writes to: ~/.claude/skills/memory/SKILL.md
 **Step 5: Validate and print status**
 
 ```
-claude-memory v1.0.0
+cmr-memory v1.0.0
 
   ✓ CLI installed globally
   ✓ Data directory: ~/.claude-memory/
@@ -729,7 +729,7 @@ claude-memory v1.0.0
 Ready. Start a Claude Code session to begin building memory.
 
 Tip: To use a separate API key for memory calls:
-  claude-memory config --api-key sk-ant-...
+  cmr-memory config --api-key sk-ant-...
 ```
 
 Idempotent: running again skips existing config.
@@ -738,26 +738,26 @@ Idempotent: running again skips existing config.
 
 ```bash
 # Verify CLI is available
-claude-memory status
+cmr-memory status
 
 # Inside Claude Code session
 > /hooks
-# Should show PreToolUse and PostToolUse entries for claude-memory
+# Should show PreToolUse and PostToolUse entries for cmr-memory
 
 # Test the agent can call it
-> Run: claude-memory list
+> Run: cmr-memory list
 ```
 
 ### 10.4 Uninstall
 
 ```bash
-npx claude-memory uninstall
+npx cmr-memory uninstall
 ```
 
 1. Removes hooks from ~/.claude/settings.json
 2. Removes skill from ~/.claude/skills/memory/
 3. Asks whether to remove data (~/.claude-memory/)
-4. Uninstalls global CLI: npm uninstall -g claude-memory
+4. Uninstalls global CLI: npm uninstall -g cmr-memory
 
 ---
 
@@ -779,7 +779,7 @@ What happens on each tool call:
 2. PreToolUse hook fires → no chunks yet → returns {} (empty)
 3. Tool executes, agent sees result
 4. PostToolUse hook fires → returns static nudge
-5. Agent sees result + "If noteworthy: claude-memory write..."
+5. Agent sees result + "If noteworthy: cmr-memory write..."
 6. Agent decides whether to write based on Skill training
 
 What the user sees:
@@ -792,11 +792,11 @@ Claude: Let me check the test output.
 
   3 tests failing in token.test.ts lines 23, 45, 67.
 
-  If noteworthy: claude-memory write "note" --when "condition"
+  If noteworthy: cmr-memory write "note" --when "condition"
 
   These failures are important — let me save this finding.
 
-  > Bash: claude-memory write "Auth test suite: 3 failures in
+  > Bash: cmr-memory write "Auth test suite: 3 failures in
     token.test.ts lines 23,45,67 — token refresh related"
     --when "working on myapp, auth tests, token.test.ts"
 
@@ -806,9 +806,9 @@ Claude: Let me check the test output.
 
   Found it — refresh token expiry is 3600s but should be 900s.
 
-  If noteworthy: claude-memory write "note" --when "condition"
+  If noteworthy: cmr-memory write "note" --when "condition"
 
-  > Bash: claude-memory write "Auth token refresh: expiry should be
+  > Bash: cmr-memory write "Auth token refresh: expiry should be
     900s not 3600s. Constant AUTH_TOKEN_EXPIRY in src/auth/config.ts"
     --when "working on myapp, auth, tokens, or editing config.ts"
 
@@ -871,7 +871,7 @@ You: Use Redis for session storage instead of Postgres
 
 Claude: Good call. Let me record this decision first.
 
-  > Bash: claude-memory write "User decision: use Redis for session
+  > Bash: cmr-memory write "User decision: use Redis for session
     storage instead of Postgres. Reason: performance for
     high-concurrency session lookups."
     --when "working on myapp, session management, database decisions"
@@ -886,7 +886,7 @@ You: What did we decide about API versioning?
 
 Claude: Let me check my memory.
 
-  > Bash: claude-memory retrieve "API versioning decisions"
+  > Bash: cmr-memory retrieve "API versioning decisions"
 
   [2024-03-15] All API routes follow /api/v2/{resource} convention.
   Legacy v1 routes deprecated but still active.
@@ -901,7 +901,7 @@ Claude: Let me check my memory.
 ### 11.6 Memory Management
 
 ```bash
-npx claude-memory status
+npx cmr-memory status
 
   Memory Status:
     Notes:      47
@@ -913,10 +913,10 @@ npx claude-memory status
     # OR:
     Auth:       API key (sk-ant-...xxxx)
 
-npx claude-memory list
-npx claude-memory reset --confirm
-npx claude-memory config --reminder off
-npx claude-memory uninstall
+npx cmr-memory list
+npx cmr-memory reset --confirm
+npx cmr-memory config --reminder off
+npx cmr-memory uninstall
 ```
 
 ### 11.7 Scaling Over Time
@@ -975,7 +975,7 @@ MERGE_TIMEOUT          = 5000ms
 MAX_TRANSCRIPT_TOKENS  = 2000
 MAX_TOOL_INPUT_CHARS   = 500
 TOKEN_ESTIMATE_DIVISOR = 4       (chars per token approx)
-MEMORY_REMINDER_TEXT   = "If noteworthy: claude-memory write \"note\" --when \"condition\""
+MEMORY_REMINDER_TEXT   = "If noteworthy: cmr-memory write \"note\" --when \"condition\""
 ```
 
 ---
@@ -983,7 +983,7 @@ MEMORY_REMINDER_TEXT   = "If noteworthy: claude-memory write \"note\" --when \"c
 ## 14. Package Structure
 
 ```
-claude-memory/
+cmr-memory/
   package.json
   tsconfig.json
 
@@ -998,7 +998,7 @@ claude-memory/
     tokens.ts             Token counting utility
 
   bin/
-    claude-memory         Executable entry point
+    cmr-memory         Executable entry point
 ```
 
 Dependencies:
@@ -1013,7 +1013,7 @@ Dependencies:
 ### Write Path (single source)
 
 ```
-Agent runs: Bash: claude-memory write "note" --when "condition"
+Agent runs: Bash: cmr-memory write "note" --when "condition"
   → cli.ts parses args
   → store.appendNote(note)
   → store.startNewChunkIfFull()
@@ -1040,7 +1040,7 @@ Path A: Passive retrieval (every tool call, deduped)
   → if all duplicates: return {} (nothing added)
 
 Path B: Explicit retrieval (agent-initiated)
-  Agent runs: Bash: claude-memory retrieve "query"
+  Agent runs: Bash: cmr-memory retrieve "query"
   → CLI arg present → agent search mode
   → scatter-gather with query as context
   → return ALL matches (no dedup)
@@ -1052,7 +1052,7 @@ Path B: Explicit retrieval (agent-initiated)
 ```
 1. Agent decides to call a tool
 2. PreToolUse hook fires (sync)
-   a. Skip if tool is claude-memory command
+   a. Skip if tool is cmr-memory command
    b. Read transcript_path
    c. Extract existing [MEMORY] system-reminders from transcript
    d. Scatter across chunks (parallel)
@@ -1062,10 +1062,10 @@ Path B: Explicit retrieval (agent-initiated)
 3. Agent sees [MEMORY] hints (if any new), proceeds with tool call
 4. Tool executes, returns output
 5. PostToolUse hook fires (if registered)
-   a. Skip if tool is claude-memory command
+   a. Skip if tool is cmr-memory command
    b. Return static nudge (~15 tokens)
 6. Agent sees tool output + nudge
-7. Agent decides whether to run claude-memory write
+7. Agent decides whether to run cmr-memory write
 8. Next tool call: go to step 1
 ```
 
@@ -1086,7 +1086,7 @@ Path B: Explicit retrieval (agent-initiated)
 
 ## 17. Success Criteria
 
-1. `npx claude-memory init` sets up everything in one command — no API key needed
+1. `npx cmr-memory init` sets up everything in one command — no API key needed
 2. Agent can write/retrieve/list memory via Bash commands
 3. PreToolUse hook returns relevant memories as additionalContext
 4. Deduplication prevents context blowup — unique hints only

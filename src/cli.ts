@@ -38,18 +38,18 @@ import type { HookEventEntry } from './types'
 import { resolveRetrieveMode, runRetrieveHook, runRetrieveQuery } from './retrieve'
 import { runRemind } from './remind'
 
-const PRE_TOOL_COMMAND = 'claude-memory retrieve'
-const POST_TOOL_COMMAND = 'claude-memory remind'
+const PRE_TOOL_COMMAND = 'cmr-memory retrieve'
+const POST_TOOL_COMMAND = 'cmr-memory remind'
 const execFileAsync = promisify(execFile)
 
 const SKILL_CONTENT = `---
 name: memory
-description: Persistent memory across sessions. Memories auto-retrieved before tool calls. Use claude-memory CLI to save important context.
+description: Persistent memory across sessions. Memories auto-retrieved before tool calls. Use cmr-memory CLI to save important context.
 ---
 
 # Memory
 
-You have persistent memory that survives across sessions via the \`claude-memory\` CLI.
+You have persistent memory that survives across sessions via the \`cmr-memory\` CLI.
 
 ## How It Works
 
@@ -57,15 +57,15 @@ You have persistent memory that survives across sessions via the \`claude-memory
   appear as [MEMORY] blocks in your context. No action needed.
 - **Reminders**: After tool calls, you may see a short reminder to
   consider saving noteworthy results. Use your judgment.
-- **Explicit writes**: Run claude-memory write when you make important
+- **Explicit writes**: Run cmr-memory write when you make important
   decisions or discover something worth remembering.
-- **Explicit search**: Run claude-memory retrieve for specific past context.
+- **Explicit search**: Run cmr-memory retrieve for specific past context.
 
 ## Writing Memory
 
 Save important context:
 
-  claude-memory write "your note here" --when "activation condition"
+  cmr-memory write "your note here" --when "activation condition"
 
 The --when field is critical. It tells the memory system WHEN to surface
 this note. Include:
@@ -74,13 +74,13 @@ this note. Include:
 - Omit project name for universal knowledge (e.g. user preferences)
 
 Examples:
-  claude-memory write "Auth expiry should be 900s not 3600s in config.ts" \\
+  cmr-memory write "Auth expiry should be 900s not 3600s in config.ts" \\
     --when "working on myapp, auth module, tokens, or editing config.ts"
 
-  claude-memory write "User prefers tabs over spaces" \\
+  cmr-memory write "User prefers tabs over spaces" \\
     --when "any project, code formatting, editor settings"
 
-  claude-memory write "Redis chosen for session storage over Postgres" \\
+  cmr-memory write "Redis chosen for session storage over Postgres" \\
     --when "working on dashboard project, session management, database decisions"
 
 Write memory for:
@@ -104,12 +104,12 @@ Include: file paths, error messages, decision rationale, config values.
 
 ## Searching Memory
 
-  claude-memory retrieve "query here" --max 5
+  cmr-memory retrieve "query here" --max 5
 
 ## Listing Recent Notes
 
-  claude-memory list
-  claude-memory list --limit 20
+  cmr-memory list
+  cmr-memory list --limit 20
 `
 
 async function readStdin(): Promise<string> {
@@ -180,7 +180,7 @@ async function isCommandAvailable(command: string): Promise<boolean> {
 }
 
 async function ensureGlobalInstall(): Promise<boolean> {
-  if (await isCommandAvailable('claude-memory')) {
+  if (await isCommandAvailable('cmr-memory')) {
     return true
   }
   try {
@@ -190,7 +190,7 @@ async function ensureGlobalInstall(): Promise<boolean> {
     console.error(`Global install failed: ${error}`)
     return false
   }
-  return isCommandAvailable('claude-memory')
+  return isCommandAvailable('cmr-memory')
 }
 
 function preToolHookEntry(): HookEventEntry {
@@ -297,7 +297,7 @@ async function handleInit(args: string[]): Promise<void> {
   const config = await loadConfig()
   const checkMark = '\u2713'
   const warnMark = '\u26A0'
-  console.log(`claude-memory v${version}`)
+  console.log(`cmr-memory v${version}`)
   console.log('')
   console.log(
     `  ${cliInstalled ? checkMark : warnMark} CLI installed globally`
@@ -311,7 +311,7 @@ async function handleInit(args: string[]): Promise<void> {
   console.log('Ready. Start a Claude Code session to begin building memory.')
   console.log('')
   console.log('Tip: To update the API key:')
-  console.log('  claude-memory config --api-key sk-ant-...')
+  console.log('  cmr-memory config --api-key sk-ant-...')
 }
 
 async function handleStatus(): Promise<void> {
@@ -449,7 +449,7 @@ async function handleUninstall(): Promise<void> {
   }
 
   try {
-    await execFileAsync('npm', ['uninstall', '-g', 'claude-memory'])
+    await execFileAsync('npm', ['uninstall', '-g', 'cmr-memory'])
   } catch (error) {
     console.error(`Global uninstall skipped: ${error}`)
   }
@@ -470,18 +470,18 @@ async function handleRemind(): Promise<void> {
 }
 
 function printHelp(): void {
-  console.log('claude-memory')
+  console.log('cmr-memory')
   console.log('')
   console.log('Usage:')
-  console.log('  claude-memory write "note" --when "condition"')
-  console.log('  claude-memory retrieve "query" --max 5')
-  console.log('  claude-memory list --limit 10')
-  console.log('  claude-memory init --api-key sk-ant-...')
-  console.log('  claude-memory status')
-  console.log('  claude-memory config [--api-key KEY] [--max-hints N] [--reminder on|off]')
-  console.log('  claude-memory reset --confirm')
-  console.log('  claude-memory uninstall')
-  console.log('  claude-memory remind')
+  console.log('  cmr-memory write "note" --when "condition"')
+  console.log('  cmr-memory retrieve "query" --max 5')
+  console.log('  cmr-memory list --limit 10')
+  console.log('  cmr-memory init --api-key sk-ant-...')
+  console.log('  cmr-memory status')
+  console.log('  cmr-memory config [--api-key KEY] [--max-hints N] [--reminder on|off]')
+  console.log('  cmr-memory reset --confirm')
+  console.log('  cmr-memory uninstall')
+  console.log('  cmr-memory remind')
   console.log('')
   console.log(`PostToolUse reminder text: ${MEMORY_REMINDER_TEXT}`)
 }

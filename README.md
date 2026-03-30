@@ -1,15 +1,15 @@
-# claude-memory
+# cmr-memory
 
 Persistent, cross-session memory for Claude Code agents.
 
 ## Overview
 
-`claude-memory` gives Claude Code agents a durable memory layer that
+`cmr-memory` gives Claude Code agents a durable memory layer that
 survives across sessions. It combines a CLI, Claude hooks, and a Skill
 to retrieve and write notes without blocking agent work.
 
 **Design principles:**
-- All writes go through the agent (`claude-memory write`).
+- All writes go through the agent (`cmr-memory write`).
 - Reading is passive via a PreToolUse hook.
 - The transcript is the intent signal for retrieval.
 - Deduplication prevents context blowup.
@@ -17,39 +17,39 @@ to retrieve and write notes without blocking agent work.
 
 ## Authentication
 
-`claude-memory` requires an API key for memory calls. Provide it with
+`cmr-memory` requires an API key for memory calls. Provide it with
 the `--api-key` flag or the `ANTHROPIC_API_KEY` environment variable.
 
 ```bash
-npx claude-memory init --api-key sk-ant-...
+npx cmr-memory init --api-key sk-ant-...
 ```
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... npx claude-memory init
+ANTHROPIC_API_KEY=sk-ant-... npx cmr-memory init
 ```
 
 Configure or update the key later:
 
 ```bash
-claude-memory config --api-key sk-ant-...
+cmr-memory config --api-key sk-ant-...
 ```
 
 Remove the key:
 
 ```bash
-claude-memory config --api-key off
+cmr-memory config --api-key off
 ```
 
 ## Installation
 
 ```bash
-npx claude-memory init --api-key sk-ant-...
+npx cmr-memory init --api-key sk-ant-...
 ```
 
 Or use the environment variable:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... npx claude-memory init
+ANTHROPIC_API_KEY=sk-ant-... npx cmr-memory init
 ```
 
 ### From source (cloned repo)
@@ -61,11 +61,11 @@ If you are running from a cloned repository, install dependencies first so the
 git clone https://github.com/agynio/claude-map-reduce-memory.git
 cd claude-map-reduce-memory
 npm install
-npx claude-memory init --api-key sk-ant-...
+npx cmr-memory init --api-key sk-ant-...
 ```
 
 What `init` does:
-- Installs the CLI globally (`claude-memory`).
+- Installs the CLI globally (`cmr-memory`).
 - Creates `~/.claude-memory/` with config/state/chunks.
 - Registers PreToolUse + PostToolUse hooks in `~/.claude/settings.json`.
 - Installs the Skill at `~/.claude/skills/memory/SKILL.md`.
@@ -78,35 +78,35 @@ What `init` does:
 These are called by the agent via the Bash tool.
 
 ```bash
-claude-memory write "note content" --when "activation condition"
+cmr-memory write "note content" --when "activation condition"
 ```
 
 ```bash
-claude-memory retrieve "rate limiter config decisions" --max 5
+cmr-memory retrieve "rate limiter config decisions" --max 5
 ```
 
 ```bash
-claude-memory list --limit 10
+cmr-memory list --limit 10
 ```
 
 ### User-facing commands
 
 ```bash
-npx claude-memory init --api-key sk-ant-...
-npx claude-memory status
-npx claude-memory config
-npx claude-memory config --api-key sk-ant-...
-npx claude-memory config --api-key off
-npx claude-memory config --max-hints 5
-npx claude-memory config --reminder on
-npx claude-memory config --reminder off
-npx claude-memory reset --confirm
-npx claude-memory uninstall
+npx cmr-memory init --api-key sk-ant-...
+npx cmr-memory status
+npx cmr-memory config
+npx cmr-memory config --api-key sk-ant-...
+npx cmr-memory config --api-key off
+npx cmr-memory config --max-hints 5
+npx cmr-memory config --reminder on
+npx cmr-memory config --reminder off
+npx cmr-memory reset --confirm
+npx cmr-memory uninstall
 ```
 
 ## How It Works
 
-`claude-memory` has four components:
+`cmr-memory` has four components:
 
 1. **CLI**: The binary used for writing, listing, and retrieving notes.
 2. **Skill**: Teaches the agent when to write or retrieve memory.
@@ -124,10 +124,10 @@ context size stays bounded as tool calls accumulate.
 
 Config file: `~/.claude-memory/config.json`.
 
-- **API key**: `claude-memory config --api-key sk-ant-...`
-- **Disable API key**: `claude-memory config --api-key off`
-- **Max hints**: `claude-memory config --max-hints 5`
-- **Reminder toggle**: `claude-memory config --reminder on|off`
+- **API key**: `cmr-memory config --api-key sk-ant-...`
+- **Disable API key**: `cmr-memory config --api-key off`
+- **Max hints**: `cmr-memory config --max-hints 5`
+- **Reminder toggle**: `cmr-memory config --reminder on|off`
 
 `--reminder off` removes the PostToolUse hook entry from
 `~/.claude/settings.json`; `--reminder on` adds it back.
@@ -158,7 +158,7 @@ non-zero so the agent can react.
 ## Uninstall
 
 ```bash
-npx claude-memory uninstall
+npx cmr-memory uninstall
 ```
 
 This removes the hooks, the Skill, optionally deletes

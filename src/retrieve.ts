@@ -141,7 +141,7 @@ export async function runRetrieveQuery(
 ): Promise<string> {
   const config = await loadConfig()
   if (!config.apiKey) {
-    throw new Error('API key not configured. Run claude-memory config --api-key')
+    throw new Error('API key not configured. Run cmr-memory config --api-key')
   }
   const chunks = await loadChunks()
   if (chunks.length === 0) {

@@ -4,7 +4,7 @@ const os = require('node:os')
 const path = require('node:path')
 const test = require('node:test')
 
-const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-memory-store-'))
+const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'cmr-memory-store-'))
 process.env.HOME = tmpHome
 
 const { DEFAULT_CONFIG } = require('../dist/constants')

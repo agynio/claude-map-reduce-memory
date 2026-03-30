@@ -1,11 +1,11 @@
 {
-  "name": "claude-memory",
+  "name": "cmr-memory",
   "version": "1.0.0",
   "description": "Persistent memory for Claude Code agents",
   "license": "MIT",
   "main": "dist/cli.js",
   "bin": {
-    "claude-memory": "bin/claude-memory"
+    "cmr-memory": "bin/cmr-memory"
   },
   "scripts": {
     "build": "tsc",

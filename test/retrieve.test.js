@@ -16,10 +16,10 @@ test('resolveRetrieveMode distinguishes query vs hook', () => {
   })
 })
 
-test('runRetrieveHook skips claude-memory commands', async () => {
+test('runRetrieveHook skips cmr-memory commands', async () => {
   const input = JSON.stringify({
     tool_name: 'Bash',
-    tool_input: { command: 'claude-memory list' }
+    tool_input: { command: 'cmr-memory list' }
   })
   const output = await runRetrieveHook(input)
   assert.equal(output, '{}')
