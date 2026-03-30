@@ -52,6 +52,18 @@ Or use the environment variable:
 ANTHROPIC_API_KEY=sk-ant-... npx claude-memory init
 ```
 
+### From source (cloned repo)
+
+If you are running from a cloned repository, install dependencies first so the
+`prepare` script builds `dist/`.
+
+```bash
+git clone https://github.com/agynio/claude-map-reduce-memory.git
+cd claude-map-reduce-memory
+npm install
+npx claude-memory init --api-key sk-ant-...
+```
+
 What `init` does:
 - Installs the CLI globally (`claude-memory`).
 - Creates `~/.claude-memory/` with config/state/chunks.
