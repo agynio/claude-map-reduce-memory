@@ -13,7 +13,7 @@ export const MAX_TRANSCRIPT_TOKENS = 2000
 export const MAX_TOOL_INPUT_CHARS = 500
 export const TOKEN_ESTIMATE_DIVISOR = 4
 export const MEMORY_REMINDER_TEXT =
-  'If noteworthy: cmr-memory write "note" --when "condition"'
+  'Did anything noteworthy just happen? If yes, use the memory skill to save it.'
 
 export const BASE_DIR = path.join(os.homedir(), '.claude-memory')
 export const CONFIG_PATH = path.join(BASE_DIR, 'config.json')
@@ -22,6 +22,7 @@ export const CHUNKS_DIR = path.join(BASE_DIR, 'chunks')
 
 export const CLAUDE_DIR = path.join(os.homedir(), '.claude')
 export const SETTINGS_PATH = path.join(CLAUDE_DIR, 'settings.json')
+export const CLAUDE_MD_PATH = path.join(CLAUDE_DIR, 'CLAUDE.md')
 export const SKILL_DIR = path.join(CLAUDE_DIR, 'skills', 'memory')
 export const SKILL_PATH = path.join(SKILL_DIR, 'SKILL.md')
 
