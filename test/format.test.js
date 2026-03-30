@@ -30,7 +30,28 @@ test('formatScatterUserPrompt truncates tool input', () => {
 
 test('parseBulletList handles NONE and bullet lines', () => {
   assert.deepEqual(parseBulletList('NONE'), [])
+  assert.deepEqual(parseBulletList('none'), [])
   assert.deepEqual(parseBulletList(''), [])
   assert.deepEqual(parseBulletList('- one\n- two'), ['one', 'two'])
   assert.deepEqual(parseBulletList('random\n- three'), ['three'])
+  assert.deepEqual(parseBulletList('1. one\n2. **two**'), ['one', 'two'])
+  assert.deepEqual(parseBulletList('* **three**\n* four'), ['three', 'four'])
+  assert.deepEqual(
+    parseBulletList(
+      '**1. Auth decision: JWT with RS256**\n**2. Session cache TTL**'
+    ),
+    ['Auth decision: JWT with RS256', 'Session cache TTL']
+  )
+  assert.deepEqual(
+    parseBulletList(
+      'Based on the transcript...\n1. **Auth decision**\n2. Cache TTL\nThanks'
+    ),
+    ['Auth decision', 'Cache TTL']
+  )
+  assert.deepEqual(parseBulletList('[2026-03-30] launch'), [
+    '[2026-03-30] launch'
+  ])
+  assert.deepEqual(parseBulletList('- [2026-03-31] follow up'), [
+    '[2026-03-31] follow up'
+  ])
 })
