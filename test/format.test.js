@@ -33,4 +33,12 @@ test('parseBulletList handles NONE and bullet lines', () => {
   assert.deepEqual(parseBulletList(''), [])
   assert.deepEqual(parseBulletList('- one\n- two'), ['one', 'two'])
   assert.deepEqual(parseBulletList('random\n- three'), ['three'])
+  assert.deepEqual(parseBulletList('1. one\n2. **two**'), ['one', 'two'])
+  assert.deepEqual(parseBulletList('* **three**\n* four'), ['three', 'four'])
+  assert.deepEqual(parseBulletList('[2026-03-30] launch'), [
+    '[2026-03-30] launch'
+  ])
+  assert.deepEqual(parseBulletList('- [2026-03-31] follow up'), [
+    '[2026-03-31] follow up'
+  ])
 })
