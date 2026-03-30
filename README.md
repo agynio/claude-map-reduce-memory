@@ -61,7 +61,8 @@ If you are running from a cloned repository, install dependencies first so the
 git clone https://github.com/agynio/claude-map-reduce-memory.git
 cd claude-map-reduce-memory
 npm install
-npx cmr-memory init --api-key sk-ant-...
+npm install -g .
+cmr-memory init --api-key sk-ant-...
 ```
 
 What `init` does:
