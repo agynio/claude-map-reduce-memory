@@ -3,11 +3,14 @@ import path from 'node:path'
 
 import { CLAUDE_MD_PATH } from './constants'
 
+const SECTION_START = '<!-- cmr-memory:start -->'
+const SECTION_END = '<!-- cmr-memory:end -->'
 const SECTION_LINES = [
   SECTION_START,
   '## Memory',
   '',
   'When you need to retrieve or save memory, always use the /memory skill. Do not use the built-in MEMORY.md.',
+  SECTION_END
 ]
 
 type SectionRange = { start: number; end: number }
