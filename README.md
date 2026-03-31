@@ -5,8 +5,9 @@ Persistent, cross-session memory for Claude Code agents.
 ## Overview
 
 `cmr-memory` gives Claude Code agents a durable memory layer that
-survives across sessions. It combines a CLI, Claude hooks, and a Skill
-to retrieve and write notes without blocking agent work.
+survives across sessions. It combines a CLI, Claude hooks, and memory
+instructions in `CLAUDE.md` to retrieve and write notes without
+blocking agent work.
 
 **Design principles:**
 - All writes go through the agent (`cmr-memory write`).
@@ -21,11 +22,11 @@ to retrieve and write notes without blocking agent work.
 the `--api-key` flag or the `ANTHROPIC_API_KEY` environment variable.
 
 ```bash
-npx @agynio/cmr-memory init --api-key sk-ant-...
+cmr-memory init --api-key sk-ant-...
 ```
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... npx @agynio/cmr-memory init
+ANTHROPIC_API_KEY=sk-ant-... cmr-memory init
 ```
 
 Configure or update the key later:
@@ -43,13 +44,14 @@ cmr-memory config --api-key off
 ## Installation
 
 ```bash
-npx @agynio/cmr-memory init --api-key sk-ant-...
+npm install -g @agynio/cmr-memory
+cmr-memory init --api-key sk-ant-...
 ```
 
 Or use the environment variable:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... npx @agynio/cmr-memory init
+ANTHROPIC_API_KEY=sk-ant-... cmr-memory init
 ```
 
 ### From source (cloned repo)
@@ -66,10 +68,9 @@ cmr-memory init --api-key sk-ant-...
 ```
 
 What `init` does:
-- Installs the CLI globally (`cmr-memory`).
 - Creates `~/.claude-memory/` with config/state/chunks.
 - Registers PreToolUse + PostToolUse hooks in `~/.claude/settings.json`.
-- Installs the Skill at `~/.claude/skills/memory/SKILL.md`.
+- Adds memory instructions to `~/.claude/CLAUDE.md`.
 - Prints a status summary (idempotent, merges existing hooks).
 
 ## Usage
@@ -93,16 +94,16 @@ cmr-memory list --limit 10
 ### User-facing commands
 
 ```bash
-npx @agynio/cmr-memory init --api-key sk-ant-...
-npx @agynio/cmr-memory status
-npx @agynio/cmr-memory config
-npx @agynio/cmr-memory config --api-key sk-ant-...
-npx @agynio/cmr-memory config --api-key off
-npx @agynio/cmr-memory config --max-hints 5
-npx @agynio/cmr-memory config --reminder on
-npx @agynio/cmr-memory config --reminder off
-npx @agynio/cmr-memory reset --confirm
-npx @agynio/cmr-memory uninstall
+cmr-memory init --api-key sk-ant-...
+cmr-memory status
+cmr-memory config
+cmr-memory config --api-key sk-ant-...
+cmr-memory config --api-key off
+cmr-memory config --max-hints 5
+cmr-memory config --reminder on
+cmr-memory config --reminder off
+cmr-memory reset --confirm
+cmr-memory uninstall
 ```
 
 ## How It Works
@@ -110,7 +111,7 @@ npx @agynio/cmr-memory uninstall
 `cmr-memory` has four components:
 
 1. **CLI**: The binary used for writing, listing, and retrieving notes.
-2. **Skill**: Teaches the agent when to write or retrieve memory.
+2. **CLAUDE.md guidance**: Teaches the agent when to write or retrieve memory.
 3. **PreToolUse hook**: Reads the transcript and upcoming tool call,
    runs scatter-gather retrieval across chunk files, and injects only
    NEW `[MEMORY]` hints via deduplication.
@@ -159,8 +160,9 @@ non-zero so the agent can react.
 ## Uninstall
 
 ```bash
-npx @agynio/cmr-memory uninstall
+cmr-memory uninstall
 ```
 
-This removes the hooks, the Skill, optionally deletes
-`~/.claude-memory/`, and uninstalls the global CLI.
+This removes the hooks, memory instructions from
+`~/.claude/CLAUDE.md`, optionally deletes `~/.claude-memory/`, and
+uninstalls the global CLI.
