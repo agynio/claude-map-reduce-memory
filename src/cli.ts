@@ -13,11 +13,10 @@ import {
 import { getFlagValue, getPositionalArgs, parsePositiveInt } from './args'
 import {
   BASE_DIR,
+  CLAUDE_DIR,
   DEFAULT_CONFIG,
   MEMORY_REMINDER_TEXT,
-  PRE_HOOK_TIMEOUT,
-  SKILL_DIR,
-  SKILL_PATH
+  PRE_HOOK_TIMEOUT
 } from './constants'
 import {
   hasHookEntry,
@@ -46,76 +45,7 @@ import { runRemind } from './remind'
 const PRE_TOOL_COMMAND = 'cmr-memory retrieve'
 const POST_TOOL_COMMAND = 'cmr-memory remind'
 const execFileAsync = promisify(execFile)
-
-const SKILL_CONTENT = `---
-name: memory
-description: Persistent memory across sessions. Memories auto-retrieved before tool calls. Use cmr-memory CLI to save important context.
----
-
-# Memory
-
-You have persistent memory that survives across sessions via the \`cmr-memory\` CLI.
-
-## How It Works
-
-- **Automatic retrieval**: Before each tool call, relevant memories
-  appear as [MEMORY] blocks in your context. No action needed.
-- **Reminders**: After tool calls, you may see a short reminder to
-  consider saving noteworthy results. Use your judgment.
-- **Explicit writes**: Run cmr-memory write when you make important
-  decisions or discover something worth remembering.
-- **Explicit search**: Run cmr-memory retrieve for specific past context.
-
-## Writing Memory
-
-Save important context:
-
-  cmr-memory write "your note here" --when "activation condition"
-
-The --when field is critical. It tells the memory system WHEN to surface
-this note. Include:
-- Project name for project-specific notes
-- File paths, module names, or topics that should trigger recall
-- Omit project name for universal knowledge (e.g. user preferences)
-
-Examples:
-  cmr-memory write "Auth expiry should be 900s not 3600s in config.ts" \\
-    --when "working on myapp, auth module, tokens, or editing config.ts"
-
-  cmr-memory write "User prefers tabs over spaces" \\
-    --when "any project, code formatting, editor settings"
-
-  cmr-memory write "Redis chosen for session storage over Postgres" \\
-    --when "working on dashboard project, session management, database decisions"
-
-Write memory for:
-- Decisions and rationale
-- Discovered bugs and root causes
-- Architecture facts and dependencies
-- User preferences and project conventions
-- Environment details and config values
-
-Don't write memory for:
-- Routine operations (file reads, standard test runs)
-- Info already in code comments or docs
-- Temporary debugging state
-
-Good notes are specific:
-- BAD: "Fixed the bug"
-- GOOD: "Fixed auth token refresh in src/auth/token.ts \u2014 expiry was
-  3600s, should be 900s per API spec"
-
-Include: file paths, error messages, decision rationale, config values.
-
-## Searching Memory
-
-  cmr-memory retrieve "query here" --max 5
-
-## Listing Recent Notes
-
-  cmr-memory list
-  cmr-memory list --limit 20
-`
+const SKILL_DIR = path.join(CLAUDE_DIR, 'skills', 'memory')
 
 async function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -295,8 +225,7 @@ async function handleInit(args: string[]): Promise<void> {
   )
   await saveSettingsFile(withPost)
 
-  await fs.mkdir(SKILL_DIR, { recursive: true })
-  await fs.writeFile(SKILL_PATH, SKILL_CONTENT)
+  await fs.rm(SKILL_DIR, { recursive: true, force: true })
   await upsertClaudeMdRule()
 
   const version = await loadPackageVersion()
@@ -311,7 +240,6 @@ async function handleInit(args: string[]): Promise<void> {
   console.log(`  ${checkMark} Data directory: ${BASE_DIR}`)
   console.log(`  ${checkMark} PreToolUse hook registered`)
   console.log(`  ${checkMark} PostToolUse hook registered (reminder: on)`)
-  console.log(`  ${checkMark} Skill installed: ${SKILL_PATH}`)
   console.log(`  ${checkMark} CLAUDE.md rule added`)
   console.log(`  ${checkMark} Auth: API key (${maskApiKey(config.apiKey)})`)
   console.log('')
