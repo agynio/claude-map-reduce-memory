@@ -16,6 +16,14 @@ blocking agent work.
 - Deduplication prevents context blowup.
 - No extra processes or MCP servers; just an npm CLI.
 
+
+## Installation
+
+```bash
+npm install -g @agynio/cmr-memory
+cmr-memory init --api-key sk-ant-...
+```
+
 ## Authentication
 
 `cmr-memory` requires an API key for memory calls. Provide it with
@@ -40,39 +48,6 @@ Remove the key:
 ```bash
 cmr-memory config --api-key off
 ```
-
-## Installation
-
-```bash
-npm install -g @agynio/cmr-memory
-cmr-memory init --api-key sk-ant-...
-```
-
-Or use the environment variable:
-
-```bash
-npm install -g @agynio/cmr-memory
-ANTHROPIC_API_KEY=sk-ant-... cmr-memory init
-```
-
-### From source (cloned repo)
-
-If you are running from a cloned repository, install dependencies first so the
-`prepare` script builds `dist/`.
-
-```bash
-git clone https://github.com/agynio/claude-map-reduce-memory.git
-cd claude-map-reduce-memory
-npm install
-npm install -g .
-cmr-memory init --api-key sk-ant-...
-```
-
-What `init` does:
-- Creates `~/.claude-memory/` with config/state/chunks.
-- Registers PreToolUse + PostToolUse hooks in `~/.claude/settings.json`.
-- Adds memory instructions to `~/.claude/CLAUDE.md`.
-- Prints a status summary (idempotent, merges existing hooks).
 
 ## Usage
 
