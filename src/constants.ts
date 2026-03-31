@@ -13,7 +13,7 @@ export const MAX_TRANSCRIPT_TOKENS = 2000
 export const MAX_TOOL_INPUT_CHARS = 500
 export const TOKEN_ESTIMATE_DIVISOR = 4
 export const MEMORY_REMINDER_TEXT =
-  'Did anything noteworthy just happen? If yes, use the memory skill to save it.'
+  'Did anything noteworthy just happen? If yes, use `cmr-memory write "note content" --when "activation condition"` to save it.'
 
 export const BASE_DIR = path.join(os.homedir(), '.claude-memory')
 export const CONFIG_PATH = path.join(BASE_DIR, 'config.json')
