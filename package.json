@@ -7,6 +7,9 @@
   "bin": {
     "cmr-memory": "bin/cmr-memory"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
