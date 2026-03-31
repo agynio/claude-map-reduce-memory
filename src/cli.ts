@@ -387,7 +387,7 @@ async function handleUninstall(): Promise<void> {
   }
 
   try {
-    await execFileAsync('npm', ['uninstall', '-g', 'cmr-memory'])
+    await execFileAsync('npm', ['uninstall', '-g', '@agynio/cmr-memory'])
   } catch (error) {
     console.error(`Global uninstall skipped: ${error}`)
   }

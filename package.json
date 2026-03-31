@@ -1,11 +1,14 @@
 {
-  "name": "cmr-memory",
+  "name": "@agynio/cmr-memory",
   "version": "1.0.0",
   "description": "Persistent memory for Claude Code agents",
   "license": "MIT",
   "main": "dist/cli.js",
   "bin": {
     "cmr-memory": "bin/cmr-memory"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",

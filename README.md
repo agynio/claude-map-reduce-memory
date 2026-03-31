@@ -21,11 +21,11 @@ to retrieve and write notes without blocking agent work.
 the `--api-key` flag or the `ANTHROPIC_API_KEY` environment variable.
 
 ```bash
-npx cmr-memory init --api-key sk-ant-...
+npx @agynio/cmr-memory init --api-key sk-ant-...
 ```
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... npx cmr-memory init
+ANTHROPIC_API_KEY=sk-ant-... npx @agynio/cmr-memory init
 ```
 
 Configure or update the key later:
@@ -43,13 +43,13 @@ cmr-memory config --api-key off
 ## Installation
 
 ```bash
-npx cmr-memory init --api-key sk-ant-...
+npx @agynio/cmr-memory init --api-key sk-ant-...
 ```
 
 Or use the environment variable:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... npx cmr-memory init
+ANTHROPIC_API_KEY=sk-ant-... npx @agynio/cmr-memory init
 ```
 
 ### From source (cloned repo)
@@ -93,16 +93,16 @@ cmr-memory list --limit 10
 ### User-facing commands
 
 ```bash
-npx cmr-memory init --api-key sk-ant-...
-npx cmr-memory status
-npx cmr-memory config
-npx cmr-memory config --api-key sk-ant-...
-npx cmr-memory config --api-key off
-npx cmr-memory config --max-hints 5
-npx cmr-memory config --reminder on
-npx cmr-memory config --reminder off
-npx cmr-memory reset --confirm
-npx cmr-memory uninstall
+npx @agynio/cmr-memory init --api-key sk-ant-...
+npx @agynio/cmr-memory status
+npx @agynio/cmr-memory config
+npx @agynio/cmr-memory config --api-key sk-ant-...
+npx @agynio/cmr-memory config --api-key off
+npx @agynio/cmr-memory config --max-hints 5
+npx @agynio/cmr-memory config --reminder on
+npx @agynio/cmr-memory config --reminder off
+npx @agynio/cmr-memory reset --confirm
+npx @agynio/cmr-memory uninstall
 ```
 
 ## How It Works
@@ -159,7 +159,7 @@ non-zero so the agent can react.
 ## Uninstall
 
 ```bash
-npx cmr-memory uninstall
+npx @agynio/cmr-memory uninstall
 ```
 
 This removes the hooks, the Skill, optionally deletes
