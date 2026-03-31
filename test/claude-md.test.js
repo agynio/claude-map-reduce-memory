@@ -21,6 +21,18 @@ test('detectLineEnding defaults to LF', () => {
   assert.equal(detectLineEnding('single line'), '\n')
 })
 
+test('buildSection includes memory guidance', () => {
+  const section = buildSection('\n')
+  assert.match(
+    section,
+    /When you need to retrieve or save memory, always use the `cmr-memory` CLI\./
+  )
+  assert.match(section, /## How It Works/)
+  assert.match(section, /## Writing Memory/)
+  assert.match(section, /## Searching Memory/)
+  assert.match(section, /## Listing Recent Notes/)
+})
+
 test('findSectionRange returns null when markers missing', () => {
   assert.equal(findSectionRange('no markers here'), null)
   assert.equal(findSectionRange(`${SECTION_START}\nMissing end`), null)

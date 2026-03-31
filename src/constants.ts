@@ -23,8 +23,6 @@ export const CHUNKS_DIR = path.join(BASE_DIR, 'chunks')
 export const CLAUDE_DIR = path.join(os.homedir(), '.claude')
 export const SETTINGS_PATH = path.join(CLAUDE_DIR, 'settings.json')
 export const CLAUDE_MD_PATH = path.join(CLAUDE_DIR, 'CLAUDE.md')
-export const SKILL_DIR = path.join(CLAUDE_DIR, 'skills', 'memory')
-export const SKILL_PATH = path.join(SKILL_DIR, 'SKILL.md')
 
 export const DEFAULT_CONFIG: Config = {
   chunkTokenLimit: CHUNK_TOKEN_LIMIT,
