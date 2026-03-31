@@ -4,17 +4,13 @@ Persistent, cross-session memory for Claude Code agents.
 
 ## Overview
 
-`cmr-memory` gives Claude Code agents a durable memory layer that
-survives across sessions. It combines a CLI, Claude hooks, and memory
-instructions in `CLAUDE.md` to retrieve and write notes without
-blocking agent work.
+Without persistent memory, a Claude Code agent resets to zero every session — repeating the same mistakes, ignoring learned preferences, requiring the same rules re-prompted every time. Claude's built-in `MEMORY.md` is per-repo and read once at startup; notes fall off by position as the file grows, not by relevance.
 
-**Design principles:**
-- All writes go through the agent (`cmr-memory write`).
-- Reading is passive via a PreToolUse hook.
-- The transcript is the intent signal for retrieval.
-- Deduplication prevents context blowup.
-- No extra processes or MCP servers; just an npm CLI.
+`cmr-memory` replaces that with context-activated retrieval. Notes are stored globally with a plain-language `--when` condition. Before every tool call, a PreToolUse hook reads the current transcript and runs retrieval against stored notes — using a small LLM that reasons about relevance rather than matching strings. Only hints that aren't already in the transcript are injected, so context stays bounded regardless of session length.
+
+At scale, retrieval uses a map-reduce pattern: notes are split into fixed-size chunks and queried in parallel (one Haiku call per chunk) that makes it fast. Chunk system prompts are stable, so prompt caching keeps per-call cost low.
+
+Everything ships as a single npm CLI. No extra processes, no MCP servers. `cmr-memory init` registers the hooks, injects instructions into `CLAUDE.md`, and configures the retrieval model in one command.
 
 
 ## Installation
