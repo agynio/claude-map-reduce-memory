@@ -1,6 +1,6 @@
 {
   "name": "@agynio/cmr-memory",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Persistent memory for Claude Code agents",
   "license": "MIT",
   "main": "dist/cli.js",
