@@ -51,6 +51,7 @@ cmr-memory init --api-key sk-ant-...
 Or use the environment variable:
 
 ```bash
+npm install -g @agynio/cmr-memory
 ANTHROPIC_API_KEY=sk-ant-... cmr-memory init
 ```
 
