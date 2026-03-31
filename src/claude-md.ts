@@ -19,7 +19,7 @@ const SECTION_LINES = [
   '- **Automatic retrieval**: Before each tool call, relevant memories',
   '  appear as [MEMORY] blocks in your context. No action needed.',
   '- **Reminders**: After tool calls, you may see a short reminder to',
-  '  consider saving noteworthy results. Use your judgment.',
+  '  consider saving noteworthy results. Use your judgment and save directly without asking the user.',
   '- **Explicit writes**: Run cmr-memory write when you make important',
   '  decisions or discover something worth remembering.',
   '- **Explicit search**: Run cmr-memory retrieve for specific past context.',
