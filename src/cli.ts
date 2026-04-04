@@ -289,6 +289,7 @@ async function handleStatus(): Promise<void> {
 async function handleConfig(args: string[]): Promise<void> {
   const apiKeyValue = getFlagValue(args, '--api-key')
   const maxHintsValue = getFlagValue(args, '--max-hints')
+  const reasoningPairsValue = getFlagValue(args, '--reasoning-pairs')
   const reminderValue = getFlagValue(args, '--reminder')
 
   const config = await loadConfig()
@@ -309,6 +310,15 @@ async function handleConfig(args: string[]): Promise<void> {
       throw new Error('max-hints must be a positive integer')
     }
     config.maxHints = parsed
+    configChanged = true
+  }
+
+  if (reasoningPairsValue !== undefined) {
+    const parsed = Number.parseInt(reasoningPairsValue, 10)
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      throw new Error('reasoning-pairs must be a positive integer')
+    }
+    config.lastReasoningPairs = parsed
     configChanged = true
   }
 
@@ -342,6 +352,7 @@ async function handleConfig(args: string[]): Promise<void> {
     console.log('Config:')
     console.log(`  chunkTokenLimit: ${config.chunkTokenLimit}`)
     console.log(`  maxHints:        ${config.maxHints}`)
+    console.log(`  reasoningPairs:  ${config.lastReasoningPairs}`)
     console.log(`  model:           ${config.model}`)
     console.log(`  apiKey:          ${maskApiKey(config.apiKey)}`)
     return
@@ -416,7 +427,9 @@ function printHelp(): void {
   console.log('  cmr-memory list --limit 10')
   console.log('  cmr-memory init --api-key sk-ant-...')
   console.log('  cmr-memory status')
-  console.log('  cmr-memory config [--api-key KEY] [--max-hints N] [--reminder on|off]')
+  console.log(
+    '  cmr-memory config [--api-key KEY] [--max-hints N] [--reasoning-pairs N] [--reminder on|off]'
+  )
   console.log('  cmr-memory reset --confirm')
   console.log('  cmr-memory uninstall')
   console.log('  cmr-memory remind')

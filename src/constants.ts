@@ -5,11 +5,12 @@ import type { Config } from './types'
 
 export const CHUNK_TOKEN_LIMIT = 20000
 export const MAX_HINTS = 3
+export const DEFAULT_REASONING_PAIRS = 2
 export const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
 export const PRE_HOOK_TIMEOUT = 15000
 export const SCATTER_TIMEOUT = 12000
 export const MERGE_TIMEOUT = 5000
-export const MAX_TRANSCRIPT_TOKENS = 2000
+export const MAX_TRANSCRIPT_TOKENS = 800
 export const MAX_TOOL_INPUT_CHARS = 500
 export const TOKEN_ESTIMATE_DIVISOR = 4
 export const MEMORY_REMINDER_TEXT =
@@ -28,5 +29,6 @@ export const DEFAULT_CONFIG: Config = {
   chunkTokenLimit: CHUNK_TOKEN_LIMIT,
   maxHints: MAX_HINTS,
   model: DEFAULT_MODEL,
-  apiKey: null
+  apiKey: null,
+  lastReasoningPairs: DEFAULT_REASONING_PAIRS
 }

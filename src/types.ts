@@ -23,6 +23,7 @@ export interface Config {
   maxHints: number
   model: string
   apiKey: string | null
+  lastReasoningPairs: number
 }
 
 export interface RawHookInput {
