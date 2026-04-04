@@ -7,6 +7,7 @@ import { isRecord } from './guards'
 import { isClaudeMemoryCommand } from './hooks'
 import { gatherHookHints, gatherQueryResults } from './scatter-gather'
 import { loadChunks, loadConfig } from './store'
+import { parseTranscriptJSONL } from './transcript'
 import { truncateToTokenLimit } from './tokens'
 import type { HookInput, RawHookInput } from './types'
 
@@ -97,13 +98,15 @@ export async function runRetrieveHook(rawInput: string): Promise<string> {
     }
 
     const transcript = await readTranscript(hookInput.transcript_path)
-    const trimmedTranscript = truncateToTokenLimit(
+    const structuredTranscript = parseTranscriptJSONL(
       transcript,
+      config.lastReasoningPairs
+    )
+    const trimmedTranscript = truncateToTokenLimit(
+      structuredTranscript,
       MAX_TRANSCRIPT_TOKENS
     )
-    const existingHints = transcript
-      ? extractExistingHints(transcript)
-      : []
+    const existingHints = transcript ? extractExistingHints(transcript) : []
     const toolInputText = JSON.stringify(hookInput.tool_input)
 
     const hints = await gatherHookHints({

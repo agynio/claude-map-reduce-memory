@@ -37,6 +37,12 @@ function parseConfig(data: unknown): Config {
     ? data.chunkTokenLimit
     : DEFAULT_CONFIG.chunkTokenLimit
   const maxHints = isNumber(data.maxHints) ? data.maxHints : DEFAULT_CONFIG.maxHints
+  const lastReasoningPairs =
+    isNumber(data.lastReasoningPairs) &&
+    Number.isInteger(data.lastReasoningPairs) &&
+    data.lastReasoningPairs > 0
+      ? data.lastReasoningPairs
+      : DEFAULT_CONFIG.lastReasoningPairs
   const model = typeof data.model === 'string' ? data.model : DEFAULT_CONFIG.model
   const apiKey =
     data.apiKey === null || data.apiKey === undefined
@@ -49,7 +55,8 @@ function parseConfig(data: unknown): Config {
     chunkTokenLimit,
     maxHints,
     model,
-    apiKey
+    apiKey,
+    lastReasoningPairs
   }
 }
 
