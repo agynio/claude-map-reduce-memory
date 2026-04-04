@@ -28,17 +28,19 @@ import {
 import {
   appendNote,
   calculateStorageBytes,
+  detectConfigDrift,
   ensureBaseDirectories,
   ensureStateInitialized,
   listNotes,
   loadConfig,
   loadConfigOrNull,
   loadChunks,
+  loadRawConfig,
   removeDataDirectory,
   resetStore,
   saveConfig
 } from './store'
-import type { HookEventEntry } from './types'
+import type { Config, HookEventEntry } from './types'
 import { resolveRetrieveMode, runRetrieveHook, runRetrieveQuery } from './retrieve'
 import { runRemind } from './remind'
 
@@ -205,8 +207,25 @@ async function handleInit(args: string[]): Promise<void> {
   await ensureBaseDirectories()
   if (!existingConfig) {
     await saveConfig({ ...DEFAULT_CONFIG, apiKey })
-  } else if (apiKeyFlag && apiKeyFlag !== existingConfig.apiKey) {
-    await saveConfig({ ...existingConfig, apiKey })
+  } else {
+    const apiKeyChanged =
+      apiKeyFlag !== undefined && apiKeyFlag !== existingConfig.apiKey
+    const targetConfig: Config = apiKeyChanged
+      ? { ...existingConfig, apiKey }
+      : { ...existingConfig }
+    if (apiKeyChanged) {
+      await saveConfig(targetConfig)
+    } else {
+      const rawOnDisk = await loadRawConfig()
+      if (rawOnDisk && detectConfigDrift(rawOnDisk, targetConfig)) {
+        const shouldUpdate = await promptYesNo(
+          'Config file is missing new fields or has outdated values. Update config? (y/N) '
+        )
+        if (shouldUpdate) {
+          await saveConfig(targetConfig)
+        }
+      }
+    }
   }
   await ensureStateInitialized()
 
