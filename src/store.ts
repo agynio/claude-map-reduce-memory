@@ -125,10 +125,13 @@ export async function ensureBaseDirectories(): Promise<void> {
   await fs.mkdir(CHUNKS_DIR, { recursive: true })
 }
 
-export async function loadConfigOrNull(): Promise<Config | null> {
+export async function loadRawConfig(): Promise<Record<string, unknown> | null> {
   try {
     const raw = await readJsonFile(CONFIG_PATH)
-    return parseConfig(raw)
+    if (!isRecord(raw)) {
+      throw new Error('Invalid config format')
+    }
+    return raw
   } catch (error) {
     if (error instanceof Error && 'code' in error) {
       const code = (error as NodeJS.ErrnoException).code
@@ -143,12 +146,27 @@ export async function loadConfigOrNull(): Promise<Config | null> {
   }
 }
 
+export async function loadConfigOrNull(): Promise<Config | null> {
+  const raw = await loadRawConfig()
+  if (!raw) {
+    return null
+  }
+  return parseConfig(raw)
+}
+
 export async function loadConfig(): Promise<Config> {
   const config = await loadConfigOrNull()
   if (!config) {
     throw new Error('Config not found. Run "cmr-memory init".')
   }
   return config
+}
+
+export function detectConfigDrift(
+  raw: Record<string, unknown>,
+  parsed: Config
+): boolean {
+  return JSON.stringify(raw) !== JSON.stringify(parsed)
 }
 
 export async function saveConfig(config: Config): Promise<void> {
