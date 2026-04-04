@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict'
+
 import { isRecord } from './guards'
 
 type ToolCall = {
@@ -8,7 +10,7 @@ type ToolCall = {
 type AssistantEntry = {
   kind: 'assistant'
   text: string
-  toolCalls: ToolCall[]
+  toolCalls: ReadonlyArray<ToolCall>
   lineIndex: number
 }
 
@@ -21,9 +23,8 @@ type HumanEntry = {
 type ParsedEntry = AssistantEntry | HumanEntry
 
 type ParsedTranscript = {
-  entriesByIndex: Map<number, ParsedEntry>
   assistants: AssistantEntry[]
-  lineCount: number
+  allEntries: ParsedEntry[]
 }
 
 type TranscriptSection = {
@@ -31,10 +32,12 @@ type TranscriptSection = {
   text: string
 }
 
-const EMPTY_ASSISTANT: { text: string; toolCalls: ToolCall[] } = {
-  text: '',
-  toolCalls: []
-}
+const EMPTY_TOOL_CALLS: ReadonlyArray<ToolCall> = Object.freeze([])
+const EMPTY_ASSISTANT: Readonly<{ text: string; toolCalls: ReadonlyArray<ToolCall> }> =
+  Object.freeze({
+    text: '',
+    toolCalls: EMPTY_TOOL_CALLS
+  })
 
 function normalizeText(parts: string[]): string {
   return parts
@@ -63,28 +66,20 @@ function extractTextContent(content: unknown): string {
 }
 
 function stringifyToolInput(input: unknown): string {
-  if (typeof input === 'string') {
-    return input
-  }
-  if (typeof input === 'number' || typeof input === 'boolean') {
-    return String(input)
-  }
-  if (input === null) {
-    return 'null'
-  }
   if (input === undefined) {
     return ''
   }
-  try {
-    return JSON.stringify(input) ?? ''
-  } catch {
-    return ''
+  if (typeof input === 'string') {
+    return input
   }
+  const serialized = JSON.stringify(input)
+  assert(serialized !== undefined, 'Unsupported tool input')
+  return serialized
 }
 
 function extractAssistantMessage(message: unknown): {
   text: string
-  toolCalls: ToolCall[]
+  toolCalls: ReadonlyArray<ToolCall>
 } {
   if (!isRecord(message)) {
     return EMPTY_ASSISTANT
@@ -124,8 +119,8 @@ function extractAssistantMessage(message: unknown): {
 }
 
 function parseTranscript(raw: string): ParsedTranscript {
-  const entriesByIndex = new Map<number, ParsedEntry>()
   const assistants: AssistantEntry[] = []
+  const allEntries: ParsedEntry[] = []
   const lines = raw.split(/\r?\n/)
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
@@ -149,7 +144,7 @@ function parseTranscript(raw: string): ParsedTranscript {
         continue
       }
       const entry: HumanEntry = { kind: 'human', text, lineIndex }
-      entriesByIndex.set(lineIndex, entry)
+      allEntries.push(entry)
       continue
     }
 
@@ -167,15 +162,14 @@ function parseTranscript(raw: string): ParsedTranscript {
         toolCalls,
         lineIndex
       }
-      entriesByIndex.set(lineIndex, entry)
       assistants.push(entry)
+      allEntries.push(entry)
     }
   }
 
   return {
-    entriesByIndex,
     assistants,
-    lineCount: lines.length
+    allEntries
   }
 }
 
@@ -195,11 +189,12 @@ function formatReasoningPair(entry: AssistantEntry): string {
   return lines.join('\n')
 }
 
-function clampReasoningPairs(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 1
-  }
-  return Math.max(1, Math.floor(value))
+function assertValidReasoningPairs(value: number): number {
+  assert(
+    Number.isFinite(value) && value >= 1,
+    `Invalid lastReasoningPairs: ${value}`
+  )
+  return Math.floor(value)
 }
 
 export function parseTranscriptJSONL(
@@ -211,13 +206,17 @@ export function parseTranscriptJSONL(
   }
   const parsed = parseTranscript(raw)
   const sectionEntries: TranscriptSection[] = []
-  const reasoningLimit = clampReasoningPairs(lastReasoningPairs)
+  const reasoningLimit = assertValidReasoningPairs(lastReasoningPairs)
 
   let excludedAssistantIndex: number | null = null
-  for (let lineIndex = parsed.lineCount - 1; lineIndex >= 0; lineIndex -= 1) {
-    const entry = parsed.entriesByIndex.get(lineIndex)
-    if (entry?.kind === 'human') {
-      const previous = parsed.entriesByIndex.get(lineIndex - 1)
+  for (
+    let entryIndex = parsed.allEntries.length - 1;
+    entryIndex >= 0;
+    entryIndex -= 1
+  ) {
+    const entry = parsed.allEntries[entryIndex]
+    if (entry.kind === 'human') {
+      const previous = parsed.allEntries[entryIndex - 1]
       if (previous?.kind === 'assistant' && previous.text) {
         sectionEntries.push({
           index: previous.lineIndex,
