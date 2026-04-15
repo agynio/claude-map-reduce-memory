@@ -15,6 +15,9 @@ import {
   BASE_DIR,
   CLAUDE_DIR,
   DEFAULT_CONFIG,
+  DEFAULT_ANTHROPIC_MODEL,
+  DEFAULT_OPENAI_MODEL,
+  DEFAULT_PROVIDER,
   MEMORY_REMINDER_TEXT,
   PRE_HOOK_TIMEOUT
 } from './constants'
@@ -94,6 +97,27 @@ function maskApiKey(apiKey: string | null): string {
     return apiKey
   }
   return `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`
+}
+
+function parseProvider(value: string): Config['provider'] {
+  if (value === 'anthropic' || value === 'openai') {
+    return value
+  }
+  throw new Error('provider must be "anthropic" or "openai"')
+}
+
+function parseModel(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    throw new Error('model must be a non-empty string')
+  }
+  return trimmed
+}
+
+function defaultModelForProvider(provider: Config['provider']): string {
+  return provider === 'openai'
+    ? DEFAULT_OPENAI_MODEL
+    : DEFAULT_ANTHROPIC_MODEL
 }
 
 async function loadPackageVersion(): Promise<string> {
@@ -193,27 +217,52 @@ async function handleRetrieve(args: string[]): Promise<void> {
 
 async function handleInit(args: string[]): Promise<void> {
   const apiKeyFlag = getFlagValue(args, '--api-key')
+  const providerFlag = getFlagValue(args, '--provider')
+  const modelFlag = getFlagValue(args, '--model')
   if (apiKeyFlag === 'off') {
     throw new Error('init requires a valid API key')
   }
-  const envApiKey = process.env.ANTHROPIC_API_KEY
   const existingConfig = await loadConfigOrNull()
+  const provider = providerFlag
+    ? parseProvider(providerFlag)
+    : existingConfig?.provider ?? DEFAULT_PROVIDER
+  const providerChanged =
+    providerFlag !== undefined && existingConfig
+      ? provider !== existingConfig.provider
+      : false
+  const model = modelFlag
+    ? parseModel(modelFlag)
+    : existingConfig
+      ? providerChanged
+        ? defaultModelForProvider(provider)
+        : existingConfig.model
+      : defaultModelForProvider(provider)
+  const envApiKey =
+    provider === 'openai'
+      ? process.env.OPENAI_API_KEY
+      : process.env.ANTHROPIC_API_KEY
   const apiKey = apiKeyFlag ?? envApiKey ?? existingConfig?.apiKey
   if (!apiKey) {
-    throw new Error('API key required. Use --api-key or ANTHROPIC_API_KEY.')
+    const envName = provider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY'
+    throw new Error(`API key required. Use --api-key or ${envName}.`)
   }
 
   const cliInstalled = await ensureGlobalInstall()
   await ensureBaseDirectories()
   if (!existingConfig) {
-    await saveConfig({ ...DEFAULT_CONFIG, apiKey })
+    await saveConfig({ ...DEFAULT_CONFIG, apiKey, provider, model })
   } else {
     const apiKeyChanged =
       apiKeyFlag !== undefined && apiKeyFlag !== existingConfig.apiKey
-    const targetConfig: Config = apiKeyChanged
-      ? { ...existingConfig, apiKey }
-      : { ...existingConfig }
-    if (apiKeyChanged) {
+    const providerChangedFlag =
+      providerFlag !== undefined && provider !== existingConfig.provider
+    const modelChanged =
+      modelFlag !== undefined && model !== existingConfig.model
+    const targetConfig: Config =
+      apiKeyChanged || providerChangedFlag || modelChanged
+        ? { ...existingConfig, apiKey, provider, model }
+        : { ...existingConfig }
+    if (apiKeyChanged || providerChangedFlag || modelChanged) {
       await saveConfig(targetConfig)
     } else {
       const rawOnDisk = await loadRawConfig()
@@ -260,7 +309,9 @@ async function handleInit(args: string[]): Promise<void> {
   console.log(`  ${checkMark} PreToolUse hook registered`)
   console.log(`  ${checkMark} PostToolUse hook registered (reminder: on)`)
   console.log(`  ${checkMark} CLAUDE.md rule added`)
-  console.log(`  ${checkMark} Auth: API key (${maskApiKey(config.apiKey)})`)
+  console.log(
+    `  ${checkMark} Auth: ${config.provider} API key (${maskApiKey(config.apiKey)})`
+  )
   console.log('')
   console.log('Ready. Start a Claude Code session to begin building memory.')
   console.log('')
@@ -300,13 +351,19 @@ async function handleStatus(): Promise<void> {
     )
   }
   console.log(`  Storage:    ${storageBytes} bytes`)
+  console.log(`  Provider:   ${config.provider}`)
+  console.log(`  Model:      ${config.model}`)
   console.log(`  Reminder:   ${reminderOn ? 'on' : 'off'}`)
   console.log(`  CLAUDE.md rule: ${claudeRuleOn ? 'on' : 'off'}`)
-  console.log(`  Auth:       API key (${maskApiKey(config.apiKey)})`)
+  console.log(
+    `  Auth:       ${config.provider} API key (${maskApiKey(config.apiKey)})`
+  )
 }
 
 async function handleConfig(args: string[]): Promise<void> {
   const apiKeyValue = getFlagValue(args, '--api-key')
+  const providerValue = getFlagValue(args, '--provider')
+  const modelValue = getFlagValue(args, '--model')
   const maxHintsValue = getFlagValue(args, '--max-hints')
   const reasoningPairsValue = getFlagValue(args, '--reasoning-pairs')
   const reminderValue = getFlagValue(args, '--reminder')
@@ -320,6 +377,29 @@ async function handleConfig(args: string[]): Promise<void> {
     } else {
       config.apiKey = apiKeyValue
     }
+    configChanged = true
+  }
+
+  let providerChanged = false
+  if (providerValue !== undefined) {
+    const parsed = parseProvider(providerValue)
+    if (parsed !== config.provider) {
+      config.provider = parsed
+      providerChanged = true
+      configChanged = true
+    }
+  }
+
+  if (modelValue !== undefined) {
+    const parsed = parseModel(modelValue)
+    if (parsed !== config.model) {
+      config.model = parsed
+      configChanged = true
+    }
+  }
+
+  if (providerChanged && modelValue === undefined) {
+    config.model = defaultModelForProvider(config.provider)
     configChanged = true
   }
 
@@ -372,6 +452,7 @@ async function handleConfig(args: string[]): Promise<void> {
     console.log(`  chunkTokenLimit: ${config.chunkTokenLimit}`)
     console.log(`  maxHints:        ${config.maxHints}`)
     console.log(`  reasoningPairs:  ${config.lastReasoningPairs}`)
+    console.log(`  provider:        ${config.provider}`)
     console.log(`  model:           ${config.model}`)
     console.log(`  apiKey:          ${maskApiKey(config.apiKey)}`)
     return
@@ -444,10 +525,11 @@ function printHelp(): void {
   console.log('  cmr-memory write "note" --when "condition"')
   console.log('  cmr-memory retrieve "query" --max 5')
   console.log('  cmr-memory list --limit 10')
-  console.log('  cmr-memory init --api-key sk-ant-...')
+  console.log('  cmr-memory init --api-key sk-ant-... --provider anthropic')
+  console.log('  cmr-memory init --api-key sk-... --provider openai')
   console.log('  cmr-memory status')
   console.log(
-    '  cmr-memory config [--api-key KEY] [--max-hints N] [--reasoning-pairs N] [--reminder on|off]'
+    '  cmr-memory config [--api-key KEY] [--provider anthropic|openai] [--model ID] [--max-hints N] [--reasoning-pairs N] [--reminder on|off]'
   )
   console.log('  cmr-memory reset --confirm')
   console.log('  cmr-memory uninstall')

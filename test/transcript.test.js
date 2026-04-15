@@ -17,6 +17,14 @@ test('parseTranscriptJSONL handles a single human message', () => {
   assert.equal(parseTranscriptJSONL(raw, 2), 'User: Hello there')
 })
 
+test('parseTranscriptJSONL handles a single user message', () => {
+  const raw = line({
+    type: 'user',
+    message: { content: [{ type: 'text', text: 'Howdy' }] }
+  })
+  assert.equal(parseTranscriptJSONL(raw, 2), 'User: Howdy')
+})
+
 test('parseTranscriptJSONL skips assistant entries without reasoning', () => {
   const raw = [
     line({ type: 'human', message: { content: 'Ping' } }),

@@ -11,13 +11,14 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/build.js",
     "prepare": "npm run build",
     "lint": "tsc --noEmit",
     "test": "npm run build && node --test --test-concurrency=1"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
+    "openai": "^4.104.0",
     "uuid": "^11.0.0"
   },
   "devDependencies": {
