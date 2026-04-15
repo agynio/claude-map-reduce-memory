@@ -112,7 +112,7 @@ function createOpenAIClient(config: Config): LLMClient {
           client.chat.completions.create({
             model,
             temperature: 0,
-            max_tokens: maxTokens,
+            max_completion_tokens: maxTokens,
             messages: [
               { role: 'system', content: system },
               { role: 'user', content: user }
