@@ -11,7 +11,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm exec --yes --package typescript@5.8.3 -- tsc",
     "prepare": "npm run build",
     "lint": "tsc --noEmit",
     "test": "npm run build && node --test --test-concurrency=1"
