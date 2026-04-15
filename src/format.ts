@@ -6,8 +6,9 @@ const BULLET_LIST_FORMAT_INSTRUCTIONS = [
   'Format exactly:',
   '- first hint',
   '- second hint',
-  'Err on the side of NONE when uncertain or borderline.',
-  'If nothing matches: NONE'
+  'If nothing is relevant: NONE',
+  'When uncertain, prefer NONE over a guess — but do not suppress notes',
+  'whose activation condition clearly applies.'
 ]
 
 const QUERY_BULLET_LIST_FORMAT_INSTRUCTIONS = [
@@ -82,10 +83,11 @@ export function formatScatterUserPrompt(
     `Input: ${truncatedInput}`,
     '</upcoming_tool_call>',
     '',
-    'Look at each note\'s "activate when" condition. ONLY include a note if',
-    'the activation condition is directly addressed by the transcript or the',
-    'upcoming tool call. Tangential overlap is not enough.',
-    'Extract the note\'s content as a candidate hint. Up to 3 candidates.',
+    'Check each note\'s "activate when" condition against the transcript and',
+    'upcoming tool call. A note is relevant when the agent would benefit from',
+    'knowing it right now — the condition\'s topic, file, or project overlaps',
+    'with what the user is working on. Ignore notes whose condition describes',
+    'an unrelated area. Up to 3 candidates.',
     ...BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
 }
@@ -112,11 +114,12 @@ export function formatSingleChunkUserPrompt(
     `Input: ${truncatedInput}`,
     '</upcoming_tool_call>',
     '',
-    'Look at each note\'s activation condition. ONLY include notes whose',
-    'activation condition is directly addressed by the transcript or upcoming',
-    'tool call. Tangential overlap is not enough.',
-    'Return 1-3 hints matching the transcript that are NOT already in',
-    'existing_memory_hints.',
+    'Check each note\'s "activate when" condition against the transcript and',
+    'upcoming tool call. A note is relevant when the agent would benefit from',
+    'knowing it right now — the condition\'s topic, file, or project overlaps',
+    'with what the user is working on. Ignore notes whose condition describes',
+    'an unrelated area.',
+    'Return 1-3 hints that are NOT already in existing_memory_hints.',
     ...BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
 }
@@ -143,12 +146,11 @@ export function formatReducePrompt(
     transcript,
     '</structured_transcript>',
     '',
-    'First discard any candidates that are NOT directly relevant to the',
-    'structured_transcript. Tangential overlap is not enough.',
-    'From the remaining candidates, return ONLY hints that are NOT already',
-    'present in existing_memory_hints. Two hints are "the same" if they convey',
-    'the same core fact, even if worded differently.',
-    'If no candidates survive, return exactly: NONE.',
+    'First discard candidates that are not relevant to the structured_transcript.',
+    'A candidate is relevant when the agent would benefit from knowing it right now.',
+    'Then remove candidates already present in existing_memory_hints. Two hints are',
+    '"the same" if they convey the same core fact, even if worded differently.',
+    'If none survive, return exactly: NONE.',
     'Otherwise return 1-3 new hints.',
     ...BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
