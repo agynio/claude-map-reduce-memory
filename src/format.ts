@@ -16,7 +16,9 @@ const QUERY_BULLET_LIST_FORMAT_INSTRUCTIONS = [
   'Format exactly:',
   '- [2026-03-30] first hint',
   '- [2026-03-31] second hint',
-  'If nothing matches: NONE'
+  'If nothing is relevant to the query: NONE',
+  'Do not guess or stretch — if the query has no clear connection to any',
+  'note, return NONE.'
 ]
 
 const BULLET_LINE_PATTERN = /^[-*]\s+(.*)$/
@@ -162,9 +164,33 @@ export function formatQueryUserPrompt(query: string, maxResults: number): string
     query,
     '</query>',
     '',
-    'Look at each note\'s "activate when" condition and content. If the query',
-    `matches, return up to ${maxResults} exact note lines in the format`,
+    'Look at each note\'s "activate when" condition and content. A note is',
+    'relevant when it clearly relates to the query\'s topic, file, project,',
+    'or requested detail. Vague or nonsensical queries match nothing.',
+    `If the query matches, return up to ${maxResults} exact note lines in the format`,
     '"[YYYY-MM-DD] content".',
+    ...QUERY_BULLET_LIST_FORMAT_INSTRUCTIONS
+  ].join('\n')
+}
+
+export function formatQueryReducePrompt(
+  query: string,
+  candidates: string[]
+): string {
+  const formattedCandidates = candidates
+    .map((candidate) => `- ${candidate}`)
+    .join('\n')
+  return [
+    '<query>',
+    query,
+    '</query>',
+    '',
+    '<candidates>',
+    formattedCandidates,
+    '</candidates>',
+    '',
+    'Keep only candidates that are clearly relevant to the query.',
+    'If none are relevant, return exactly: NONE.',
     ...QUERY_BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
 }

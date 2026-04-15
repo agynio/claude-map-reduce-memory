@@ -1,6 +1,7 @@
 import { MERGE_TIMEOUT, SCATTER_TIMEOUT } from './constants'
 import {
   formatChunkNotes,
+  formatQueryReducePrompt,
   formatQueryUserPrompt,
   formatReducePrompt,
   formatScatterSystemPrompt,
@@ -125,11 +126,30 @@ export async function gatherQueryResults(params: {
     })
   )
 
-  return results.flatMap((result) => {
+  const candidates = results.flatMap((result) => {
     if (result.status === 'fulfilled') {
       return result.value
     }
     console.error(`Scatter failed: ${result.reason}`)
     return []
   })
+
+  if (candidates.length === 0) {
+    return []
+  }
+
+  try {
+    const reducePrompt = formatQueryReducePrompt(params.query, candidates)
+    const response = await client.complete({
+      model: params.config.model,
+      system: 'You filter memory search results for relevance to a query.',
+      user: reducePrompt,
+      maxTokens: DEFAULT_MAX_TOKENS,
+      timeoutMs: MERGE_TIMEOUT
+    })
+    return parseBulletList(response).slice(0, params.maxResults)
+  } catch (error) {
+    console.error(`Query reduce failed: ${error}`)
+    return candidates.slice(0, params.maxResults)
+  }
 }

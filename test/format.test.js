@@ -4,6 +4,8 @@ const test = require('node:test')
 const { MAX_TOOL_INPUT_CHARS } = require('../dist/constants')
 const {
   formatNoteForChunk,
+  formatQueryReducePrompt,
+  formatQueryUserPrompt,
   formatScatterUserPrompt,
   parseBulletList
 } = require('../dist/format')
@@ -26,6 +28,27 @@ test('formatScatterUserPrompt truncates tool input', () => {
   const inputLine = prompt.split('\n').find((line) => line.startsWith('Input: '))
   assert.ok(inputLine)
   assert.equal(inputLine.replace('Input: ', '').length, MAX_TOOL_INPUT_CHARS)
+})
+
+test('formatQueryUserPrompt warns on vague queries', () => {
+  const prompt = formatQueryUserPrompt('???', 2)
+  assert.ok(prompt.includes('Vague or nonsensical queries match nothing.'))
+})
+
+test('formatQueryReducePrompt wraps query and candidates', () => {
+  const prompt = formatQueryReducePrompt('auth', [
+    '[2026-03-30] JWT tokens',
+    '[2026-03-31] cache TTL'
+  ])
+  assert.ok(prompt.includes('<query>\nauth\n</query>'))
+  assert.ok(
+    prompt.includes(
+      '<candidates>\n- [2026-03-30] JWT tokens\n- [2026-03-31] cache TTL\n</candidates>'
+    )
+  )
+  assert.ok(
+    prompt.includes('Keep only candidates that are clearly relevant to the query.')
+  )
 })
 
 test('parseBulletList handles NONE and bullet lines', () => {
