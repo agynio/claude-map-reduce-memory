@@ -8,7 +8,12 @@ const nodeModulesPath = path.join(projectRoot, 'node_modules')
 if (!fs.existsSync(nodeModulesPath)) {
   execSync('npm install --ignore-scripts --include=dev --no-audit --no-fund', {
     cwd: projectRoot,
-    stdio: 'inherit'
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      npm_config_global: 'false',
+      npm_config_prefix: projectRoot
+    }
   })
 }
 
