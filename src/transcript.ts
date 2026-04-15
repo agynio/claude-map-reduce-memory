@@ -137,7 +137,7 @@ function parseTranscript(raw: string): ParsedTranscript {
     if (!isRecord(parsed) || typeof parsed.type !== 'string') {
       continue
     }
-    if (parsed.type === 'human') {
+    if (parsed.type === 'human' || parsed.type === 'user') {
       const message = isRecord(parsed.message) ? parsed.message : undefined
       const text = message ? extractTextContent(message.content) : ''
       if (!text) {

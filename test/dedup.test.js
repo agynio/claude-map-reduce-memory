@@ -19,6 +19,20 @@ test('extractExistingHints pulls [MEMORY] hints from transcript', () => {
   ])
 })
 
+test('extractExistingHints pulls multiple hints from one reminder', () => {
+  const transcript = [
+    '<system-reminder>',
+    '[MEMORY] First hint',
+    '[MEMORY] Second hint',
+    '</system-reminder>'
+  ].join('\n')
+
+  assert.deepEqual(extractExistingHints(transcript), [
+    'First hint',
+    'Second hint'
+  ])
+})
+
 test('extractExistingHints returns empty array when none', () => {
   assert.deepEqual(extractExistingHints('No reminders here.'), [])
 })
