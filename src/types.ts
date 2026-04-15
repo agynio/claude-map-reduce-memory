@@ -21,6 +21,7 @@ export interface State {
 export interface Config {
   chunkTokenLimit: number
   maxHints: number
+  provider: 'anthropic' | 'openai'
   model: string
   apiKey: string | null
   lastReasoningPairs: number

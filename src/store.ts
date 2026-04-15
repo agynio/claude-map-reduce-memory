@@ -37,6 +37,10 @@ function parseConfig(data: unknown): Config {
     ? data.chunkTokenLimit
     : DEFAULT_CONFIG.chunkTokenLimit
   const maxHints = isNumber(data.maxHints) ? data.maxHints : DEFAULT_CONFIG.maxHints
+  const provider =
+    data.provider === 'anthropic' || data.provider === 'openai'
+      ? data.provider
+      : DEFAULT_CONFIG.provider
   const lastReasoningPairs =
     isNumber(data.lastReasoningPairs) &&
     Number.isInteger(data.lastReasoningPairs) &&
@@ -54,6 +58,7 @@ function parseConfig(data: unknown): Config {
   return {
     chunkTokenLimit,
     maxHints,
+    provider,
     model,
     apiKey,
     lastReasoningPairs

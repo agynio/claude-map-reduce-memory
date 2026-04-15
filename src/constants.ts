@@ -6,7 +6,9 @@ import type { Config } from './types'
 export const CHUNK_TOKEN_LIMIT = 20000
 export const MAX_HINTS = 3
 export const DEFAULT_REASONING_PAIRS = 2
-export const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
+export const DEFAULT_PROVIDER = 'anthropic'
+export const DEFAULT_ANTHROPIC_MODEL = 'claude-haiku-4-5-20251001'
+export const DEFAULT_OPENAI_MODEL = 'gpt-5.4-nano'
 export const PRE_HOOK_TIMEOUT = 15000
 export const SCATTER_TIMEOUT = 12000
 export const MERGE_TIMEOUT = 5000
@@ -28,7 +30,8 @@ export const CLAUDE_MD_PATH = path.join(CLAUDE_DIR, 'CLAUDE.md')
 export const DEFAULT_CONFIG: Config = {
   chunkTokenLimit: CHUNK_TOKEN_LIMIT,
   maxHints: MAX_HINTS,
-  model: DEFAULT_MODEL,
+  provider: DEFAULT_PROVIDER,
+  model: DEFAULT_ANTHROPIC_MODEL,
   apiKey: null,
   lastReasoningPairs: DEFAULT_REASONING_PAIRS
 }

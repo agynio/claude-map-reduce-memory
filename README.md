@@ -45,6 +45,21 @@ Remove the key:
 cmr-memory config --api-key off
 ```
 
+## Providers
+
+Choose the provider at init time:
+
+```bash
+cmr-memory init --provider anthropic --api-key sk-ant-...
+cmr-memory init --provider openai --api-key sk-...
+```
+
+Model IDs are provider-specific. Set them explicitly with:
+
+```bash
+cmr-memory config --model <id>
+```
+
 ## Usage
 
 ### Agent-facing commands
@@ -71,6 +86,8 @@ cmr-memory status
 cmr-memory config
 cmr-memory config --api-key sk-ant-...
 cmr-memory config --api-key off
+cmr-memory config --provider anthropic|openai
+cmr-memory config --model <id>
 cmr-memory config --max-hints 5
 cmr-memory config --reminder on
 cmr-memory config --reminder off
@@ -100,6 +117,8 @@ Config file: `~/.claude-memory/config.json`.
 
 - **API key**: `cmr-memory config --api-key sk-ant-...`
 - **Disable API key**: `cmr-memory config --api-key off`
+- **Provider**: `cmr-memory config --provider anthropic|openai`
+- **Model**: `cmr-memory config --model <id>`
 - **Max hints**: `cmr-memory config --max-hints 5`
 - **Reminder toggle**: `cmr-memory config --reminder on|off`
 
