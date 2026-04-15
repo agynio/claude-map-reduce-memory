@@ -85,7 +85,8 @@ export async function gatherHookHints(params: {
     )
     const response = await client.complete({
       model: params.config.model,
-      system: 'You merge memory hints.',
+      system:
+        'You filter and deduplicate memory hints. Discard anything not directly relevant.',
       user: reducePrompt,
       maxTokens: DEFAULT_MAX_TOKENS,
       timeoutMs: MERGE_TIMEOUT

@@ -6,6 +6,7 @@ const BULLET_LIST_FORMAT_INSTRUCTIONS = [
   'Format exactly:',
   '- first hint',
   '- second hint',
+  'Err on the side of NONE when uncertain or borderline.',
   'If nothing matches: NONE'
 ]
 
@@ -81,9 +82,10 @@ export function formatScatterUserPrompt(
     `Input: ${truncatedInput}`,
     '</upcoming_tool_call>',
     '',
-    'Look at each note\'s "activate when" condition. If the condition matches',
-    'the transcript and upcoming tool call, extract the note\'s content as a',
-    'candidate hint. Up to 3 candidates.',
+    'Look at each note\'s "activate when" condition. ONLY include a note if',
+    'the activation condition is directly addressed by the transcript or the',
+    'upcoming tool call. Tangential overlap is not enough.',
+    'Extract the note\'s content as a candidate hint. Up to 3 candidates.',
     ...BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
 }
@@ -110,8 +112,11 @@ export function formatSingleChunkUserPrompt(
     `Input: ${truncatedInput}`,
     '</upcoming_tool_call>',
     '',
-    'Look at each note\'s activation condition. Return 1-3 hints matching',
-    'the transcript that are NOT already in existing_memory_hints.',
+    'Look at each note\'s activation condition. ONLY include notes whose',
+    'activation condition is directly addressed by the transcript or upcoming',
+    'tool call. Tangential overlap is not enough.',
+    'Return 1-3 hints matching the transcript that are NOT already in',
+    'existing_memory_hints.',
     ...BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
 }
@@ -138,10 +143,12 @@ export function formatReducePrompt(
     transcript,
     '</structured_transcript>',
     '',
-    'Return ONLY hints that are NOT already present in existing_memory_hints.',
-    'Two hints are "the same" if they convey the same core fact, even if',
-    'worded differently.',
-    'If all candidates duplicate existing hints, return exactly: NONE',
+    'First discard any candidates that are NOT directly relevant to the',
+    'structured_transcript. Tangential overlap is not enough.',
+    'From the remaining candidates, return ONLY hints that are NOT already',
+    'present in existing_memory_hints. Two hints are "the same" if they convey',
+    'the same core fact, even if worded differently.',
+    'If no candidates survive, return exactly: NONE.',
     'Otherwise return 1-3 new hints.',
     ...BULLET_LIST_FORMAT_INSTRUCTIONS
   ].join('\n')
